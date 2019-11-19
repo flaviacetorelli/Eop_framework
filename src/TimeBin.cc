@@ -64,7 +64,9 @@ TimeBin::TimeBin& TimeBin::TimeBin::operator=(const TimeBin& other)
   timemin_      = other.timemin_;
   timemax_      = other.timemax_;
   Nev_          = other.Nev_;
-  variablelist_ = other.variablelist_;
+
+  for (auto variableindex : other.variablelist_)
+    variablelist_[variableindex.first] = variableindex.second;
   if(other.h_scale_)
   {
     h_scale_      = new TH1F(*(other.h_scale_));
@@ -112,10 +114,13 @@ void TimeBin::TimeBin::BranchOutput(TTree* outtree)
   outtree->Branch("timemin",&timemin_);
   outtree->Branch("timemax",&timemax_);
   outtree->Branch("Nev",&Nev_);
+ cout << "CIAO" << endl; 
   for(map<string,float>::iterator it=variablelist_.begin(); it!=variablelist_.end(); ++it)
   {
     string variablename  = it->first;
     outtree->Branch(variablename.c_str(), &variablelist_[variablename]);
+    cout << "TimeBin::BranchOutput" << endl; 
+    cout << "variablelist_[variablename]" << variablename.c_str() << " &variablelist_[variablename] "<<variablelist_[variablename] << endl;
   }
 }
 
@@ -149,8 +154,7 @@ void TimeBin::TimeBin::BranchInput(TTree* intree)
 bool TimeBin::TimeBin::Match(const UInt_t &run, const UShort_t &ls, const UInt_t &time) const
 {
   //cout<<"try to match "<<time<<" in "<<"("<<timemin_<<","<<timemax_<<")"<<endl;
-  if(time>=timemin_ && time<=timemax_)
-  {
+  //{
     //cout<<"try to match "<<run<<" in "<<"("<<runmin_<<","<<runmax_<<")"<<endl;
     if(run>=runmin_ && run<=runmax_)
     {
@@ -161,7 +165,7 @@ bool TimeBin::TimeBin::Match(const UInt_t &run, const UShort_t &ls, const UInt_t
 	return true;
       }
     }
-  }
+  //}
   //cout<<"NO match"<<endl;
   return false;
 
@@ -183,8 +187,9 @@ double TimeBin::TimeBin::GetMean()
 {
   if(!h_scale_)
     cerr<<"[ERROR]: histogram is not booked"<<endl;
-
+   cout <<"NEvents " << h_scale_->Integral() <<endl;
   return h_scale_->GetMean();
+
 }
 
 

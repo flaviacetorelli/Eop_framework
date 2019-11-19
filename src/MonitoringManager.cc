@@ -44,7 +44,10 @@ float MonitoringManager::GetScaleVariableValue(const int &iEle)
     else
       return -999;
   else
+    {
+    //PrintEleSummary(iEle); 
     return variable_ -> EvalInstance(iEle);
+    }
 }
 
 
@@ -186,8 +189,10 @@ void  MonitoringManager::SaveTimeBins(std::string outfilename, std::string write
   for(auto bincontent : timebins)
   {
     bin=bincontent;
+    bincontent.PrintVariables();
     outtree->Fill();
   }
+  //outtree->Print();
 
   outfile->cd();
   outtree->AutoSave();
@@ -257,6 +262,7 @@ void  MonitoringManager::FillTimeBins()
   
   long Nentries = this->GetEntries();
   cout<<Nentries<<" total entries\n"<<endl;
+  int nev=0; 
   for(long ientry=0; ientry<Nentries; ++ientry)
   {
     this->GetEntry(ientry);
@@ -271,10 +277,14 @@ void  MonitoringManager::FillTimeBins()
 	
 	auto bin_iterator = FindBin(this->GetRunNumber(),this->GetLS(),this->GetTime());
 	if(bin_iterator!=timebins.end())
+          {
 	  bin_iterator->FillHisto( GetScaleVariableValue(iEle) );
+          nev++;
+          }
       }
     }
   }
+  cout << "Filled bin with nevents : " << nev << endl; 
 
   cout<<">> Histos filled"<<endl;
 

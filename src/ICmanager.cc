@@ -55,7 +55,7 @@ void ICmanager::LoadIC(TH2D* ICmap)
   Nphi_=ICmap->GetNbinsX();
   iphimin_=ICmap->GetXaxis()->GetXmin();
   iphimax_=ICmap->GetXaxis()->GetXmax()-1;//i want the left limit of last bin, not the right one
-  //cout<<">>> Neta="<<Neta_<<" in ["<<ietamin_<<","<<ietamax<<"] and Nphi="<<Nphi<<" in ["<<iphimin_<<","<<iphimax<<"]"<<endl;
+  cout<<">>> Neta="<<Neta_<<" in ["<<ietamin_<<","<<ietamax_<<"] and Nphi="<<Nphi_<<" in ["<<iphimin_<<","<<iphimax_<<"]"<<endl;
   
   xtal_ = new crystal[Neta_*Nphi_];
   for(int xbin=1; xbin<Nphi_+1; ++xbin)
@@ -63,6 +63,7 @@ void ICmanager::LoadIC(TH2D* ICmap)
     {
       int index = fromTH2indexto1Dindex(xbin, ybin, Nphi_, Neta_);
       xtal_[index].IC = ICmap->GetBinContent(xbin,ybin); 
+      //cout << xbin << ", " << ybin << "  " << xtal_[index].IC << endl;
       xtal_[index].status = 1;
     }
 

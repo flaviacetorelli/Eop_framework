@@ -110,7 +110,7 @@ int main(int argc, char* argv[])
     //save the output
     string outputfilename = config.GetOpt<string> ("LaserMonitoring.scaleMonitor.output");
     cout<<">> Saving timebins to "<<outputfilename<<endl;
-    monitor.SaveTimeBins(outputfilename);
+    monitor.SaveTimeBins(outputfilename); // L'unico punto in cui può scambiare è qui! vedi SaveTimeBins in MonitoringManager.cc
 
     //string writemethod = config.GetOpt<string> ("LaserMonitoring.scaleMonitor.outputmethod");
     //TFile* outfile = new TFile(outfilename.c_str(),writemethod.c_str());
