@@ -41,14 +41,8 @@ float MonitoringManager::GetScaleVariableValue(const int &iEle)
     else
       return -999;
   else
-<<<<<<< HEAD
-    {
-    //PrintEleSummary(iEle); 
-    return variable_ -> EvalInstance(iEle);
-    }
-=======
     return this -> GetVariableValue("Eop_monitoring_scale",iEle);//method of ECALELFInterface
->>>>>>> 88da3e98ee5c9357a5451e51f1f47d5a54e8dd1a
+
 }
 
 
@@ -341,6 +335,7 @@ void  MonitoringManager::RunComputeMean(string scale)
   {
     //cout<<"reading bin "<<it_bin-timebins.begin()<<endl;
     it_bin->SetVariable("scale_"+scale, it_bin->GetMean());
+    it_bin->SetVariable("scale_err_"+scale, it_bin->GetMeanError());
   }
 }
 

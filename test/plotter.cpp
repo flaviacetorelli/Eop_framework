@@ -36,6 +36,7 @@
 using namespace std;
 
 
+
 void MakeCfrPlots( TString fold1, TString fold2,  TString cut, TString title)
 {
 
@@ -55,6 +56,7 @@ void MakeCfrPlots( TString fold1, TString fold2,  TString cut, TString title)
     TChain* EoPiCorr;
     EoPiCorr = new TChain("ciao");
     EoPiCorr -> Add("/afs/cern.ch/work/f/fcetorel/private/work2/Eop/Eop_framework/test/" + fold2 );
+   // EoPiCorr -> Add("/afs/cern.ch/work/f/fcetorel/private/work2/Eop/Eop_framework/test/IEta_26_45_IPhi_101_110/scaleMonitor.root");
     EoPiCorr -> SetMarkerStyle(20);
     EoPiCorr -> SetMarkerColor(kGreen+2);   
     
@@ -66,6 +68,7 @@ void MakeCfrPlots( TString fold1, TString fold2,  TString cut, TString title)
     double Eop_tempfit; 
     unsigned timemin; 
     float scale_Eop_mean; 
+    float scale_err_Eop_mean; 
     double ref; 
     double refCorr; 
     double Eop_norm;
@@ -79,21 +82,15 @@ void MakeCfrPlots( TString fold1, TString fold2,  TString cut, TString title)
 
     EoPiCorr->SetBranchAddress("timemin",&timemin);
     EoPiCorr->SetBranchAddress("scale_Eop_mean",&scale_Eop_mean);
+    EoPiCorr->SetBranchAddress("scale_err_Eop_mean",&scale_err_Eop_mean);
     gr2 -> SetMarkerStyle(20);
     gr2 -> SetMarkerColor(kGreen+2); 
 
+
     EoPi->GetEntry(1);
-    ref = Eop_tempfit; 
-    for (int i=1; i< EoPiCorr -> GetEntries(); i++)
-    {
-      EoPiCorr->GetEntry(i);
-      std::cout<< "scale_Eop_mean  " << scale_Eop_mean << std::endl;
-      if (scale_Eop_mean!=0) 
-      {  refCorr=scale_Eop_mean; 
-         std::cout<< "refCorr  " << refCorr << std::endl;
-         break; 
-      }
-    }
+    ref=Eop_tempfit; 
+
+
 
     //std::cout<< "ref  " << ref << std::endl;
     for (int i=1; i< EoPi->GetEntries(); i++)
@@ -116,23 +113,42 @@ void MakeCfrPlots( TString fold1, TString fold2,  TString cut, TString title)
     }
 
 
-    for (int i=1; i< EoPiCorr->GetEntries(); i++)
+//----- Eop Corr merging Bin ---//
+    vector<float> a,b, m;
+    vector<unsigned> time,t_mean;
+
+    for (int i=0; i< EoPiCorr -> GetEntries(); i++)
     {
-   // std::cout << "i " << i << std::endl;
-    
+      
+      EoPiCorr->GetEntry(i);
 
-    EoPiCorr -> GetEntry(i);
-    Eop_normCorr = scale_Eop_mean / refCorr; 
-    //std::cout << "Eop Corr  " << scale_Eop_mean << " / " << "refCorr " << refCorr << std::endl;
-    //std::cout << "Eop norm Corr  " << Eop_normCorr << std::endl;
-    //std::cout << "timemin  " << t << std::endl;
-
-    if(scale_Eop_mean > 0) Eop_normCorr = 1 / Eop_normCorr; 
-    //std::cout << "Entries  " << EoPi->GetEntries() << std::endl;
-    
-    if (scale_Eop_mean > 0) gr2->SetPoint(i,timemin,Eop_normCorr);
-    
+     if (scale_Eop_mean>0) 
+     {    a.push_back(scale_Eop_mean);
+          b.push_back(scale_err_Eop_mean);
+          time.push_back(timemin);
+     }
     }
+
+    for (unsigned i=0; i< a.size() / 2 ; i++)
+    {
+       float mean=0.; 
+
+       std::cout << "Eop 1  " << a.at(2*i) << "  Eop 2  " << a.at(2*i+1) << std::endl;
+       std::cout << "Err 1  " << b.at(2*i) << "  Err 2  " << b.at(2*i+1) << std::endl;
+       mean = (a.at(2*i)*b.at(2*i)+a.at(2*i+1)*b.at(2*i+1))/(b.at(2*i)+b.at(2*i+1));
+       m.push_back(mean); 
+       t_mean.push_back((time.at(2*i)+time.at(2*i+1))/2);
+
+    }
+ 
+
+    for (unsigned i=0; i< m.size() ; i++)
+    {
+     float mean = m.at(i)/m.at(0); 
+    gr2->SetPoint(i,t_mean.at(i),1/mean);
+
+    }
+// ---- ---------- 
 
     gPad->Update();
     TString cut1 = "& n_events > 100e6";
@@ -143,7 +159,7 @@ void MakeCfrPlots( TString fold1, TString fold2,  TString cut, TString title)
     gr1->GetXaxis()->SetTimeDisplay(1);
     gr1->GetXaxis()->SetTimeFormat("%d/%m%F1970-01-01 00:00:00");
    // gr->GetXaxis()->SetRangeUser(1.49698e+09,1511490000);
-    gr1->GetYaxis()->SetRangeUser(0.87,1.03);
+    gr1->GetYaxis()->SetRangeUser(0.985,1.05);
     gPad->Update();
     gr->Draw("P same");
     gr2->Draw("P same");
@@ -221,13 +237,16 @@ void MakeCfrPlots( TString fold1, TString fold2, TString title)
 
 int main(int argc, char *argv[])
 {
-     MakeCfrPlots( "IEta_6_25_IPhi_221_230__/IEta_6_25_IPhi_221_230___histos.root", "IEta_6_25_IPhi_221_230/scaleMonitor.root"," ieta > 6 && ieta < 25 && iphi > 221 && ieta < 230", "Time_Ev_IEta_6_25_IPhi_221_230");
+  //   MakeCfrPlots( "IEta_6_25_IPhi_221_230__/IEta_6_25_IPhi_221_230___histos.root", "IEta_6_25_IPhi_221_230/scaleMonitor.root"," ieta > 6 && ieta < 25 && iphi > 221 && ieta < 230", "Time_Ev_IEta_6_25_IPhi_221_230");
 
-     MakeCfrPlots( "IEta_26_45_IPhi_101_110__/IEta_26_45_IPhi_101_110___histos.root","IEta_26_45_IPhi_101_110/scaleMonitor.root" ," ieta > 26 && ieta < 45 && iphi > 101 && iphi < 110", "Time_Ev_IEta_26_45_IPhi_101_110");
+ //    MakeCfrPlots( "IEta_26_45_IPhi_101_110__/IEta_26_45_IPhi_101_110___histos.root","IEta_26_45_IPhi_101_110/scaleMonitor.root" ," ieta > 26 && ieta < 45 && iphi > 101 && iphi < 110", "Time_Ev_IEta_26_45_IPhi_101_110");
 
-  //   MakeCfrPlots( "IEta_6_25_IPhi_221_230_noCorr/scaleMonitor.root", "IEta_6_25_IPhi_221_230/scaleMonitor.root", "Time_Ev_IEta_6_25_IPhi_221_230");
+     MakeCfrPlots( "IEta_26_45_IPhi_101_110__/IEta_26_45_IPhi_101_110___histos.root","IEta_26_45_IPhi_101_110_ext1/scaleMonitor.root" ," ieta > 26 && ieta < 45 && iphi > 101 && iphi < 110", "Time_Ev_IEta_26_45_IPhi_101_110_ext");
 
-  //   MakeCfrPlots( "IEta_26_45_IPhi_101_110_noCorr/scaleMonitor.root" ,"IEta_26_45_IPhi_101_110/scaleMonitor.root" ,"Time_Ev_IEta_26_45_IPhi_101_110");
+
+  //  MakeCfrPlots( "IEta_6_25_IPhi_221_230_noCorr/scaleMonitor.root", "IEta_6_25_IPhi_221_230/scaleMonitor.root", "Time_Ev_IEta_6_25_IPhi_221_230");
+
+ //   MakeCfrPlots( "IEta_26_45_IPhi_101_110_noCorr/scaleMonitor.root" ,"IEta_26_45_IPhi_101_110/scaleMonitor.root" ,"Time_Ev_IEta_26_45_IPhi_101_110");
 
  /*      
          MakeCfrPlots( "IEta_6_25_IPhi_221_230__/IEta_6_25_IPhi_221_230___histos.root", " ieta > 6 && ieta < 25 && iphi > 221 && ieta < 230", "Time_Ev_IEta_6_25_IPhi_221_230");

@@ -65,10 +65,7 @@ TimeBin::TimeBin& TimeBin::TimeBin::operator=(const TimeBin& other)
   timemin_      = other.timemin_;
   timemax_      = other.timemax_;
   Nev_          = other.Nev_;
-<<<<<<< HEAD
 
-=======
->>>>>>> 88da3e98ee5c9357a5451e51f1f47d5a54e8dd1a
   for (auto variableindex : other.variablelist_)
     variablelist_[variableindex.first] = variableindex.second;
   if(other.h_scale_)
@@ -191,12 +188,17 @@ double TimeBin::TimeBin::GetMean()
 {
   if(!h_scale_)
     cerr<<"[ERROR]: histogram is not booked"<<endl;
-   cout <<"NEvents " << h_scale_->Integral() <<endl;
   return h_scale_->GetMean();
 
 }
 
+double TimeBin::TimeBin::GetMeanError()
+{
+  if(!h_scale_)
+    cerr<<"[ERROR]: histogram is not booked"<<endl;
+  return h_scale_->GetMeanError();
 
+}
 double TimeBin::TimeBin::GetMedian()
 {
   if(!h_scale_)

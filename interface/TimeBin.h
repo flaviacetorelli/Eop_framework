@@ -62,6 +62,7 @@ class TimeBin
   void     FillHisto(double x) const {h_scale_->Fill(x);} ;
   bool     InitHisto( char* name, char* title, const int &Nbin, const double &xmin, const double &xmax);
   double   GetMean();
+  double   GetMeanError();
   //double GetMean(double xmin, double xmax);
   //double GetMean(double evfraction);
   double   GetMedian();
