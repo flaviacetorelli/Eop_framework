@@ -116,13 +116,13 @@ void TimeBin::TimeBin::BranchOutput(TTree* outtree)
   outtree->Branch("timemin",&timemin_);
   outtree->Branch("timemax",&timemax_);
   outtree->Branch("Nev",&Nev_);
- cout << "CIAO" << endl; 
+
   for(map<string,float>::iterator it=variablelist_.begin(); it!=variablelist_.end(); ++it)
   {
     string variablename  = it->first;
     outtree->Branch(variablename.c_str(), &variablelist_[variablename]);
-    cout << "TimeBin::BranchOutput" << endl; 
-    cout << "variablelist_[variablename]" << variablename.c_str() << " &variablelist_[variablename] "<<variablelist_[variablename] << endl;
+    //cout << "TimeBin::BranchOutput" << endl; 
+    //cout << "variablelist_[variablename]" << variablename.c_str() << " &variablelist_[variablename] "<<variablelist_[variablename] << endl;
   }
 }
 
@@ -156,19 +156,28 @@ void TimeBin::TimeBin::BranchInput(TTree* intree)
 bool TimeBin::TimeBin::Match(const UInt_t &run, const UShort_t &ls, const UInt_t &time) const
 {
   //cout<<"try to match "<<time<<" in "<<"("<<timemin_<<","<<timemax_<<")"<<endl;
-  //{
-    //cout<<"try to match "<<run<<" in "<<"("<<runmin_<<","<<runmax_<<")"<<endl;
-    if(run>=runmin_ && run<=runmax_)
+  if(time>=timemin_ && time<=timemax_)
+  {
+   // cout<<"try to match "<<run <<"."<< ls << " in "<<"("<<runmin_<<"."<< lsmin_<<","<<runmax_<<"."<< lsmax_<<")"<<endl;
+    if (run==runmin_ && ls >= lsmin_) 
     {
-      //cout<<"try to match "<<ls<<" in "<<"("<<lsmin_<<","<<lsmax_<<")"<<endl;
-      if(ls>=lsmin_ && ls<=lsmax_)
-      {
-	//cout<<"match"<<endl;
-	return true;
-      }
+    //  cout<<"match"<<endl;
+      return true;
     }
-  //}
-  //cout<<"NO match"<<endl;
+    if (run==runmax_ && ls <= lsmax_)
+    {
+    //  cout<<"match"<<endl;
+      return true;
+    }
+    if (run>runmin_ && run<runmax_)
+    {
+    //  cout<<"match"<<endl;
+      return true; 
+    }
+
+    
+  }
+ // cout<<"NO match"<<endl;
   return false;
 
 }
@@ -186,7 +195,8 @@ bool TimeBin::TimeBin::InitHisto( char* name, char* title, const int &Nbin, cons
 
 double TimeBin::TimeBin::TemplateFit(TF1* fitfunc)
 {
-  bool isgoodfit = FitUtils::PerseverantFit(h_scale_, fitfunc);
+
+  bool isgoodfit = FitUtils::PerseverantFit(h_scale_, fitfunc, 10, "/eos/user/f/fcetorel/www/PhiSym/eflow/testing_eop");
   if(isgoodfit)
     return fitfunc->GetParameter(1);
   else
