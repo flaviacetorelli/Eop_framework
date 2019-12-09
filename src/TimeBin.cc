@@ -159,23 +159,23 @@ bool TimeBin::TimeBin::Match(const UInt_t &run, const UShort_t &ls, const UInt_t
   if(time>=timemin_ && time<=timemax_)
   {
    // cout<<"try to match "<<run <<"."<< ls << " in "<<"("<<runmin_<<"."<< lsmin_<<","<<runmax_<<"."<< lsmax_<<")"<<endl;
-    if (run==runmin_ && ls >= lsmin_) 
+    if (run<runmin_ || run > runmax_) 
     {
-    //  cout<<"match"<<endl;
-      return true;
+    //  cout<<"NO match"<<endl;
+      return false; 
     }
-    if (run==runmax_ && ls <= lsmax_)
+    if (run==runmin_ && ls < lsmin_)
     {
-    //  cout<<"match"<<endl;
-      return true;
+    //  cout<<"NO match"<<endl;
+      return false;
     }
-    if (run>runmin_ && run<runmax_)
+    if (run==runmax_ && ls>lsmax_)
     {
-    //  cout<<"match"<<endl;
-      return true; 
+    //  cout<<"NO match"<<endl;
+      return false; 
     }
-
-    
+  return true; 
+  cout<<"match"<<endl;  
   }
  // cout<<"NO match"<<endl;
   return false;
