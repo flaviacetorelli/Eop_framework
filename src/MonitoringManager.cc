@@ -185,7 +185,6 @@ void  MonitoringManager::SaveTimeBins(std::string outfilename, std::string write
   for(auto bincontent : timebins)
   {
     bin=bincontent;
-    bincontent.PrintVariables();
     outtree->Fill();
   }
   //outtree->Print();

@@ -256,7 +256,8 @@ Float_t calibrator::GetICEnergyEB(const Int_t &i)
   float E=0;
   float IC = 1.;
   int ieta,iphi;
-
+  int run; 
+  
   for(unsigned int iRecHit = 0; iRecHit < ERecHit_[i]->size(); iRecHit++) 
   {
     if(recoFlagRecHit_[i]->at(iRecHit) >= 4)
@@ -272,7 +273,8 @@ Float_t calibrator::GetICEnergyEB(const Int_t &i)
     if(ZRecHit_[i]->at(iRecHit)!=0)
       IC=1.;
     else
-      IC = (xtal_[fromIetaIphito1Dindex(ieta,iphi,Neta_,Nphi_,ietamin_,iphimin_)]).IC;
+     // IC = (xtal_[fromIetaIphito1Dindex(ieta,iphi,Neta_,Nphi_,ietamin_,iphimin_)]).IC;
+      IC = GetIC(this->GetRunNumber(),ieta,iphi);
     E += kRegression * ERecHit_[i]->at(iRecHit) * fracRecHit_[i]->at(iRecHit) * IC;
   }
       

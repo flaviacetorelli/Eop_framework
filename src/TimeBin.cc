@@ -156,8 +156,8 @@ void TimeBin::TimeBin::BranchInput(TTree* intree)
 bool TimeBin::TimeBin::Match(const UInt_t &run, const UShort_t &ls, const UInt_t &time) const
 {
   //cout<<"try to match "<<time<<" in "<<"("<<timemin_<<","<<timemax_<<")"<<endl;
-  if(time>=timemin_ && time<=timemax_)
-  {
+  //if(time>=timemin_ && time<=timemax_)
+  //{
    // cout<<"try to match "<<run <<"."<< ls << " in "<<"("<<runmin_<<"."<< lsmin_<<","<<runmax_<<"."<< lsmax_<<")"<<endl;
     if (run<runmin_ || run > runmax_) 
     {
@@ -176,7 +176,7 @@ bool TimeBin::TimeBin::Match(const UInt_t &run, const UShort_t &ls, const UInt_t
     }
   return true; 
   cout<<"match"<<endl;  
-  }
+ // }
  // cout<<"NO match"<<endl;
   return false;
 

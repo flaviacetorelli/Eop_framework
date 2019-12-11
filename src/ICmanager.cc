@@ -7,6 +7,7 @@ using namespace std;
 
 ICmanager::ICmanager(CfgManager conf):
   xtal_(0)
+
 {
   //-------------------------------------
   //load input IC
@@ -69,19 +70,104 @@ void ICmanager::LoadIC(TH2D* ICmap)
 
 }
 
+void ICmanager::LoadIC(std::map<std::vector<int>, TH2D* > *hMap) // accept a pointer *
+{
+
+  for ( map<std::vector<int>, TH2D*>::iterator i=hMap->begin(); i!=hMap->end(); i++)
+  {
+    Neta_=(*i).second->GetNbinsY();
+    ietamin_=(*i).second->GetYaxis()->GetXmin();
+    ietamax_=(*i).second->GetYaxis()->GetXmax()-1;//i want the left limit of last bin, not the right one
+    Nphi_=(*i).second->GetNbinsX();
+    iphimin_=(*i).second->GetXaxis()->GetXmin();
+    iphimax_=(*i).second->GetXaxis()->GetXmax()-1;//i want the left limit of last bin, not the right one
+    //cout <<">>> For bin " << (*i).first.at(0) << endl; 
+    //cout<<">>> Neta="<<Neta_<<" in ["<<ietamin_<<","<<ietamax_<<"] and Nphi="<<Nphi_<<" in ["<<iphimin_<<","<<iphimax_<<"]"<<endl;
+    xtal_ = new crystal[Neta_*Nphi_];
+    for(int xbin=1; xbin<Nphi_+1; ++xbin)
+      for(int ybin=1; ybin<Neta_+1; ++ybin)
+      {
+        int index = fromTH2indexto1Dindex(xbin, ybin, Nphi_, Neta_);
+        xtal_[index].IC = (*i).second->GetBinContent(xbin,ybin); 
+        if (xtal_[index].IC < 0) cout << (*i).first.at(0) <<"," <<(*i).first.at(1) << "  " <<  xbin << ", " << ybin << "  " << xtal_[index].IC << endl;
+        xtal_[index].status = 1;
+      }
+    mapXtal_.insert(make_pair((*i).first, xtal_));
+  }
+
+/*   for ( std::map <std::vector<int>, crystal*>::iterator i=mapXtal_.begin(); i!=mapXtal_.end(); i++)
+     {
+        
+         for(int xbin=1; xbin<Nphi_+1; ++xbin)
+           for(int ybin=1; ybin<Neta_+1; ++ybin)
+           {
+               
+               cout << (*i).first.at(0) << ": " << (*i).first.at(1) << " = "
+               << ((*i).second[(fromTH2indexto1Dindex(xbin,  ybin, Nphi_, Neta_))]).IC << endl; 
+           }
+     }
+*/
+}
+
+
 void ICmanager::LoadIC(const std::vector<std::string> &ICcfg)
 {
   if(xtal_)
     delete[] xtal_;
   string objkey   = ICcfg[0];
   string filename = ICcfg[1];
+
   if(objkey!="txtEB")
   {
-    cout<<"> Loading IC from "<<filename<<"/"<<objkey<<endl;
-    TFile* inICfile = new TFile(filename.c_str(),"READ");
-    TH2D* ICmap = (TH2D*) inICfile->Get(objkey.c_str());
-    this->LoadIC(ICmap);
-    inICfile->Close();
+    if (objkey!="map") 
+    {
+      cout<<"> Loading IC from "<<filename<<"/"<<objkey<<endl;
+      TFile* inICfile = new TFile(filename.c_str(),"READ");
+      TH2D* ICmap = (TH2D*) inICfile->Get(objkey.c_str());
+      this->LoadIC(ICmap);
+      inICfile->Close();
+    }
+
+
+    else
+    {
+       unsigned size = stoi(ICcfg[2]);
+       cout<<"> Loading IC from "<<filename<<"/"<<objkey<<endl; 
+
+       TFile* inICfile = new TFile(filename.c_str(),"READ");
+       std::map <std::vector<int>, TH2D*> hMap; 
+
+       for (unsigned i = 0; i< size; i++)
+       {
+         TH2D *h= (TH2D*)inICfile->Get(("map_ic_"+to_string(i)).c_str());
+         
+         std::string title = h->GetTitle(); //the tile of the histo contains the info on the run number
+         std::vector<int> run_num;  
+         
+         std::string::size_type sz;   // convert string into int
+         run_num.push_back(stoi(title, &sz));   
+         run_num.push_back(stoi(title.substr(sz+1)));
+         
+         hMap.insert(make_pair(run_num, h));
+       }     
+     this->LoadIC(&hMap);
+     cout << "> Loaded all histos in the map " << endl; 
+   /*  for ( std::map <std::vector<int>, TH2D*>::iterator i=hMap.begin(); i!=hMap.end(); i++)
+     {
+        
+         for(int xbin=1; xbin<Nphi_+1; ++xbin)
+           for(int ybin=1; ybin<Neta_+1; ++ybin)
+           {
+
+               
+               cout << (*i).first.at(0) << ": " << (*i).first.at(1) << " = "
+               << (*i).second -> GetBinContent(xbin,ybin) << endl; 
+           }
+     }
+*/
+
+    }
+
   }
   else
   {
@@ -152,6 +238,35 @@ Float_t  ICmanager::GetIC(const Int_t &index)
 {
   return (xtal_[index]).IC;
 }
+
+
+Float_t ICmanager::GetIC(const UInt_t &run, const Int_t &ieta, const Int_t &iphi)
+{
+  //#ifdef DEBUG
+  assert(ieta>=ietamin_ && ieta<=ietamax_);
+  assert(iphi>=iphimin_ && iphi<=iphimax_);
+  //#endif
+  for ( std::map<std::vector<int>, crystal*>::iterator i=mapXtal_.begin(); i!=mapXtal_.end(); i++)
+  {
+    // cout << "Try to match " << run << " in " << "(" << (*i).first.at(0) << "," << (*i).first.at(1)<<")" << endl; 
+     if (run >= (*i).first.at(0) && run <= (*i).first.at(1))
+     {
+
+       struct crystal *cryst=(*i).second;
+       if ((cryst[fromIetaIphito1Dindex(ieta,iphi,Neta_,Nphi_,ietamin_,iphimin_)]).IC < 0)  
+         cout << "This is my IC: " <<  (cryst[fromIetaIphito1Dindex(ieta,iphi,Neta_,Nphi_,ietamin_,iphimin_)]).IC << "for run, ieta, iphi: " << run << ", " << ieta << ", " << iphi << endl; 
+
+       //cout << "<<<< MATCH >>>>>" << endl; 
+       return (cryst[fromIetaIphito1Dindex(ieta,iphi,Neta_,Nphi_,ietamin_,iphimin_)]).IC;
+
+       
+     }
+
+  }
+  //cout << "No Match" << endl;
+  return -999.;
+}
+
 
 Float_t ICmanager::GetIC(const Int_t &ieta, const Int_t &iphi)
 {

@@ -34,12 +34,14 @@ class ICmanager
   ~ICmanager();
   //---utils--
   Float_t  GetIC(const Int_t &ieta, const Int_t &iphi);
+  Float_t  GetIC(const UInt_t &run, const Int_t &ieta, const Int_t &iphi); //--- Flavia
   void     GetEtaboundaries(Float_t &ietamin, Float_t &ietamax) {ietamin=ietamin_; ietamax=ietamax_;}
   void     GetPhiboundaries(Float_t &iphimin, Float_t &iphimax) {iphimin=iphimin_; iphimax=iphimax_;}
   Int_t    GetNeta() {return Neta_;}
   Int_t    GetNphi() {return Nphi_;}
   TH2D*    GetHisto(const char* name="IC", const char* title="IC");
   void     LoadIC(TH2D* IC);
+  void     LoadIC(std::map<std::vector<int>, TH2D* > *hMap); // Flavia
   void     LoadIC(const std::vector<std::string> &ICcfg);
   void     LoadIC(std::ifstream &infile);
   void     InitIC(Int_t ICvalue);
@@ -70,6 +72,7 @@ class ICmanager
   
  protected:
   struct crystal *xtal_;
+  std::map <std::vector<int>, crystal*> mapXtal_;
   int Neta_,Nphi_,ietamin_,ietamax_,iphimin_,iphimax_;
 
  private:

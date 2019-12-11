@@ -48,7 +48,7 @@ int main(int argc, char *argv[])
     int ieta = 0; 
     int iphi = 0; 
     int minRun[104] = {0}; 
-    int maxRun[104] = {0}; 
+    int msxRun[104] = {0}; 
     int firstRun[104] = {0}; 
     int lastRun[104] = {0}; 
     float ic_ratio_eflow[104] = {0.}; 
@@ -75,14 +75,15 @@ int main(int argc, char *argv[])
 
       for (int l = 0 ; l < 104; l++ )
       {  
-        map_ic_xiov[l]->Fill(iphi,ieta,ic_ratio_eflow[l]);
+        if (ic_ratio_eflow[l] >= 0) map_ic_xiov[l]->Fill(iphi,ieta,ic_ratio_eflow[l]);
+        else  map_ic_xiov[l]->Fill(iphi,ieta,0.);
         ic_ratio_eflow_avg += ic_ratio_eflow[l];
       }
 
     }
     
    cout << ">>>>>>>> Saving IC maps" << endl;
-   TFile *MyFile = new TFile("testICEB.root","RECREATE");
+   TFile *MyFile = new TFile("testICEB1.root","RECREATE");
    
     for (int i = 0; i<104; i++)
     {
@@ -90,15 +91,17 @@ int main(int argc, char *argv[])
       map_ic_xiov[i]->SetContour(100000);
       map_ic_xiov[i]->SetAxisRange(0.98, 1.02, "Z");
 
-      map_ic_xiov[i] -> SetName(("map_ic_"+to_string(firstRun[i])+"_"+to_string(lastRun[i])).c_str());
-      map_ic_xiov[i] -> Write(("map_ic_"+to_string(firstRun[i])+"_"+to_string(lastRun[i])).c_str());
+      map_ic_xiov[i] -> SetTitle((to_string(firstRun[i])+"_"+to_string(lastRun[i])).c_str());
+      map_ic_xiov[i] -> SetName(("map_ic_"+to_string(i)).c_str());
+      //map_ic_xiov[i] -> Write(("map_ic_"+to_string(firstRun[i])+"_"+to_string(lastRun[i])).c_str());
+      map_ic_xiov[i] -> Write(("map_ic_"+to_string(i)).c_str());
 
 
     }
 
-   cout << ">>>>>>>> Transferring IC maps in data/testICEB.root" << endl;
+   cout << ">>>>>>>> Transferring IC maps in data/testICEB1.root" << endl;
 
-   system("mv testICEB.root /afs/cern.ch/work/f/fcetorel/private/work2/Eop/Eop_framework/data");
+   system("mv testICEB1.root /afs/cern.ch/work/f/fcetorel/private/work2/Eop/Eop_framework/data");
 
 
    MyFile -> Close();
