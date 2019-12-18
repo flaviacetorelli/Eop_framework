@@ -218,6 +218,22 @@ double TimeBin::TimeBin::GetMeanError()
   return h_scale_->GetMeanError();
 
 }
+
+double TimeBin::TimeBin::GetRMS()
+{
+  if(!h_scale_)
+    cerr<<"[ERROR]: histogram is not booked"<<endl;
+  return h_scale_->GetRMS();
+
+}
+
+double TimeBin::TimeBin::GetRMSError()
+{
+  if(!h_scale_)
+    cerr<<"[ERROR]: histogram is not booked"<<endl;
+  return h_scale_->GetRMSError();
+
+}
 double TimeBin::TimeBin::GetMedian()
 {
   if(!h_scale_)

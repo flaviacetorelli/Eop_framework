@@ -380,7 +380,9 @@ void  MonitoringManager::RunComputeMean(string scale)
   {
     //cout<<"reading bin "<<it_bin-timebins.begin()<<endl;
     it_bin->SetVariable("scale_"+scale, it_bin->GetMean());
-    it_bin->SetVariable("scale_err_"+scale, it_bin->GetMeanError());
+    it_bin->SetVariable("scale_err_"+scale, it_bin->GetMeanError()); // Save also the error of the mean value and the RMS and its error
+    it_bin->SetVariable("scale_Eop_RMS", it_bin->GetRMS());
+    it_bin->SetVariable("scale_err_Eop_RMS", it_bin->GetRMSError());
   }
 }
 

@@ -64,6 +64,8 @@ class TimeBin
   double   TemplateFit(TF1* fitfunc);
   double   GetMean();
   double   GetMeanError();
+  double   GetRMS();
+  double   GetRMSError();
   //double GetMean(double xmin, double xmax);
   //double GetMean(double evfraction);
   double   GetMedian();
