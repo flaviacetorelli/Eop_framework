@@ -44,10 +44,8 @@ try:
 except subprocess.CalledProcessError as e:
    print e.output
 
-
-##### loop for creating and sending jobs #####
 '''
-#### 1st module
+#### 0 module
 ietamin=1
 ietamax=5
 iphimin=1
@@ -55,12 +53,10 @@ iphimax=20
 
 for keta in range (0,1): #loop over eta
    for kphi in range (0,18):
-      #hr="IEta_" +str(ietamin)+"_" +str(ietamax)+"_IPhi_"+str(iphimin+kphi*20)+"_"+str(iphimax+kphi*20)#EB+
-      #hr_sel= "(xSeedSC) >= " +str(ietamin)+" && (xSeedSC) <= "+str(ietamax)+" && (ySeedSC) >= "+str(iphimin+kphi*20)+" && (ySeedSC) <= "+str(iphimax+kphi*20)+" && abs(chargeEle)==1 && abs(etaEle) < 1.47" #EB+
-      hr_sel= "(xSeedSC) >= -" +str(ietamax)+" && (xSeedSC) <= -"+str(ietamin)+" && (ySeedSC) >= "+str(iphimin+kphi*20)+" && (ySeedSC) <= "+str(iphimax+kphi*20)+" && abs(chargeEle)==1 && abs(etaEle) < 1.47"#EB-
-      hr="IEta_-"+str(ietamax)+"_-"+str(ietamin)+"_IPhi_"+str(iphimin+kphi*20)+"_"+str(iphimax+kphi*20)#EB-
-'''
-
+      hr="IEta_" +str(ietamin)+"_" +str(ietamax)+"_IPhi_"+str(iphimin+kphi*20)+"_"+str(iphimax+kphi*20)#EB+
+      hr_sel= "(xSeedSC) >= " +str(ietamin)+" && (xSeedSC) <= "+str(ietamax)+" && (ySeedSC) >= "+str(iphimin+kphi*20)+" && (ySeedSC) <= "+str(iphimax+kphi*20)+" && abs(chargeEle)==1 && abs(etaEle) < 1.47" #EB+
+      #hr_sel= "(xSeedSC) >= -" +str(ietamax)+" && (xSeedSC) <= -"+str(ietamin)+" && (ySeedSC) >= "+str(iphimin+kphi*20)+" && (ySeedSC) <= "+str(iphimax+kphi*20)+" && abs(chargeEle)==1 && abs(etaEle) < 1.47"#EB-
+      #hr="IEta_-"+str(ietamax)+"_-"+str(ietamin)+"_IPhi_"+str(iphimin+kphi*20)+"_"+str(iphimax+kphi*20)#EB-
 #### 2,3,4,5 modules
 ietamin=6
 ietamax=25
@@ -74,6 +70,24 @@ for keta in range (0,4): #loop over eta
       #negative harness IEta <-6
       #hr="IEta_-"+str(ietamax+keta*20)+'_-' +str(ietamin+keta*20)+'_IPhi_'+str(iphimin+kphi*10)+'_'+str(iphimax+kphi*10)
       #hr_sel = "(xSeedSC) >= -" +str(ietamax+keta*20)+" && (xSeedSC) <= -"+str(ietamin+keta*20)+" && (ySeedSC) >= "+str(iphimin+kphi*10)+" && (ySeedSC) <= "+str(iphimax+kphi*10)+" && abs(chargeEle)==1 && abs(etaEle) < 1.47"
+'''
+
+
+##### loop for creating and sending jobs #####
+
+#### 2,3,4,5 modules
+ietamin=6
+ietamax=25
+iphimin=1
+iphimax=10
+for keta in range (0,4): #loop over eta
+   for kphi in range (0,36):
+      #positive harness IEta>6
+      #hr="IEta_"+str(ietamin+keta*20)+'_' +str(ietamax+keta*20)+'_IPhi_'+str(iphimin+kphi*10)+'_'+str(iphimax+kphi*10)
+      #hr_sel= "(xSeedSC) >= " +str(ietamin+keta*20)+" && (xSeedSC) <= "+str(ietamax+keta*20)+" && (ySeedSC) >= "+str(iphimin+kphi*10)+" && (ySeedSC) <= "+str(iphimax+kphi*10)+" && abs(chargeEle)==1 && abs(etaEle) < 1.47"
+      #negative harness IEta <-6
+      hr="IEta_-"+str(ietamax+keta*20)+'_-' +str(ietamin+keta*20)+'_IPhi_'+str(iphimin+kphi*10)+'_'+str(iphimax+kphi*10)
+      hr_sel = "(xSeedSC) >= -" +str(ietamax+keta*20)+" && (xSeedSC) <= -"+str(ietamin+keta*20)+" && (ySeedSC) >= "+str(iphimin+kphi*10)+" && (ySeedSC) <= "+str(iphimax+kphi*10)+" && abs(chargeEle)==1 && abs(etaEle) < 1.47"
 
 
       ##### creates directory and file list for job #######

@@ -84,7 +84,7 @@ int main(int argc, char *argv[])
     
    cout << ">>>>>>>> Saving IC maps" << endl;
    TFile *MyFile = new TFile("testICEB1.root","RECREATE");
-   
+
     for (int i = 0; i<104; i++)
     {
     
