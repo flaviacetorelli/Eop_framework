@@ -19,8 +19,8 @@ print("-------------------------------------------------------------------------
 
 #parameters
 current_dir = os.getcwd();
-ntuple_dir = "/eos/cms/store/group/dpg_ecal/alca_ecalcalib/ecalelf/ntuples/13TeV/ALCARERECO/2018/102X_dataRun2_Sep2018Rereco_v1_ULbaseCond/"#parent folder containing all the ntuples of interest
-tag_list = ["Run2018A","Run2018B","Run2018C","Run2018D"]#tag for the monitoring = any label in the ntuple path identifying univoquely the ntuples of interest
+ntuple_dir = "/eos/cms/store/group/dpg_ecal/alca_ecalcalib/ecalelf/ntuples/13TeV/ALCARERECO/PromptReco2017_pedv1_ps_ICv1_laserv3_LC_Alpha4/"#parent folder containing all the ntuples of interest
+tag_list = ["Run2017B","Run2017C","Run2017D","Run2017E","Run2017F"]#tag for the monitoring = any label in the ntuple path identifying univoquely the ntuples of interest
 ignored_ntuples_label_list = ["obsolete","failed"]#ntuples containing anywhere in the path these labels will be ignored (eg corrupted files within the given tag_list)
 
 #parse arguments
@@ -97,8 +97,12 @@ for iFile in range(0,len(selected_filelist)):
 
         jobdir="%s/IEta_%i_%i_IPhi_%i_%i/job_file_%i/"%(job_parent_folder,etamin,etamax,phimin,phimax,iFile)
         os.system("mkdir -p "+jobdir)
+        ##### copy executable to the jobDir ######
+        os.system('cp '+str(options.exedir)+'LaserMonitoring.exe '+jobdir+'/executable.exe')
         outdir = "%s/IEta_%i_%i_IPhi_%i_%i/"%(options.outdir,etamin,etamax,phimin,phimax) 
         os.system("mkdir -p "+outdir)
+        tempdir = "%s/template/IEta_%i_%i_IPhi_%i_%i/file_%i/"%(options.outdir,etamin,etamax,phimin,phimax,iFile) 
+        os.system("mkdir -p "+tempdir)
 
         with open(str(options.configFile)) as fi:
             contents = fi.read()
@@ -108,6 +112,7 @@ for iFile in range(0,len(selected_filelist)):
             replaced_contents = replaced_contents.replace("IPHIMIN",str(phimin)) 
             replaced_contents = replaced_contents.replace("IPHIMAX",str(phimax)) 
             replaced_contents = replaced_contents.replace("OUTPUT_RUNDIVIDE","%s/out_file_%i_runranges.root"%(outdir,iFile))
+            replaced_contents = replaced_contents.replace("TEMPLATE_FOLDER",tempdir)
             replaced_contents = replaced_contents.replace("OUTPUT_SCALEMONITORING","%s/out_file_%i_scalemonitoring.root"%(outdir,iFile))
             cfgfilename=jobdir+"/config.cfg"
             with open(cfgfilename, "w") as fo:
@@ -118,17 +123,19 @@ for iFile in range(0,len(selected_filelist)):
         outScript = open(outScriptName,"w")
         outScript.write("#!/bin/bash\n")
         #outScript.write('source setup.sh\n')
-        outScript.write("cd /afs/cern.ch/work/f/fmonti/flashggNew/CMSSW_10_5_0/\n")
+        outScript.write("cd /afs/cern.ch/work/f/fcetorel/private/work2/EFlow/CMSSW_10_5_0/\n")
         outScript.write('eval `scram runtime -sh`\n');
         outScript.write("cd -\n");
-        outScript.write("echo $PWD\n");
-        outScript.write(str(options.exedir)+"/LaserMonitoring.exe --cfg "+cfgfilename)
+        outScript.write("cd "+str(jobdir)+"\n")
+        outScript.write("echo 'current dir: ' ${PWD}\n")
+        outScript.write("./executable.exe --cfg "+cfgfilename)
         for task in options.tasklist.split(','):
             outScript.write(" --"+task)
         outScript.write("\n")
         outScript.write("echo finish\n") 
         outScript.close();
         os.system("chmod 777 "+outScriptName)
+
 
 #generate condor multijob submitfile for each task
 condorsubFilename=job_parent_folder+"/submit_jobs.sub"

@@ -258,7 +258,8 @@ void  MonitoringManager::FillTimeBins()
       if(this->isSelected(iEle))
       {
 	//cout<<"selected - "<<"run="<<this->GetRunNumber()<<"\tLS="<<this->GetLS()<<"\tT="<<this->GetTime()<<endl;
-	auto bin_iterator = FindBin(this->GetRunNumber(),this->GetLS(),this->GetTime());
+	//auto bin_iterator = FindBin(this->GetRunNumber(),this->GetLS(),this->GetTime());
+	auto bin_iterator = FindBin(this->GetRunNumber(),this->GetLS()); //don't want to order in time
 	if(bin_iterator!=timebins.end())
           {
 	  bin_iterator->FillHisto( GetScaleVariableValue(iEle) );
