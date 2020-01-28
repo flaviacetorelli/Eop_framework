@@ -258,15 +258,13 @@ bool TimeBin::InitHisto( char* name, char* title, const int &Nbin, const double 
     return false;
 }
 
-double TimeBin::TimeBin::TemplateFit(TF1* fitfunc, string fitopt, int nTrial, string TemplatePlotsFolder)
+bool TimeBin::Fit(TF1* fitfunc, string fitopt, int nTrial, string TemplatePlotsFolder)
 {
 
   bool isgoodfit = FitUtils::PerseverantFit(h_scale_, fitfunc, fitopt, nTrial, TemplatePlotsFolder);
 
-  if(isgoodfit)
-    return fitfunc->GetParameter(1);
-  else
-    return -999;
+  return isgoodfit;
+
 }
 
 double TimeBin::GetMean()
@@ -277,30 +275,17 @@ double TimeBin::GetMean()
 
 }
 
-double TimeBin::TimeBin::GetMeanError()
+
+double TimeBin::GetMeanError()
 {
   if(!h_scale_)
     cerr<<"[ERROR]: histogram is not booked"<<endl;
+
   return h_scale_->GetMeanError();
-
 }
 
-double TimeBin::TimeBin::GetRMS()
-{
-  if(!h_scale_)
-    cerr<<"[ERROR]: histogram is not booked"<<endl;
-  return h_scale_->GetRMS();
 
-}
-
-double TimeBin::TimeBin::GetRMSError()
-{
-  if(!h_scale_)
-    cerr<<"[ERROR]: histogram is not booked"<<endl;
-  return h_scale_->GetRMSError();
-
-}
-double TimeBin::TimeBin::GetMedian()
+double TimeBin::GetMedian()
 {
   if(!h_scale_)
     cerr<<"[ERROR]: histogram is not booked"<<endl;
@@ -325,7 +310,7 @@ double TimeBin::TimeBin::GetBinWidth(const int &ibin)
 
 void TimeBin::TimeBin::SetVariable(const std::string &variablename, const float &variablevalue)
 {
-  cout<<"setting variablelist_["<<variablename<<"]="<<variablevalue<<endl;
+  //cout<<"setting variablelist_["<<variablename<<"]="<<variablevalue<<endl;
   variablelist_[variablename] = variablevalue;
 }
 
