@@ -36,7 +36,7 @@
 using namespace std;
 bool pos = false; 
 
-void DoPlot( TString file2, TString cut, TString hr, TString output)
+void doEopEflow( TString file2, TString cut, TString hr, TString output)
 {
     TChain* ZeroBias;
     ZeroBias = new TChain("eb");

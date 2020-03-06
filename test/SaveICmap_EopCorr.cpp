@@ -39,7 +39,7 @@ using namespace std;
 int main(int argc, char *argv[])
 {
     gStyle -> SetOptStat(0);
-
+    TString method = argv[1];
     TFile* inICfile = new TFile("/afs/cern.ch/work/f/fcetorel/private/work2/Eop/Eop_framework/data/testICEB1.root", "READ");
     unsigned size = 104; //# of IOVs
     cout<<"> Loading IC from "<<inICfile->GetName()<<"/"<<endl; 
@@ -59,32 +59,51 @@ int main(int argc, char *argv[])
 
          hMap.insert(make_pair(run_num, h));
      }
-     
+     TFile* inEopfile;
      //Apro il file di E/p su tutto il Barrel per correggere la scala 
-    TFile* inEopfile = new TFile("/afs/cern.ch/work/f/fcetorel/private/work2/Eop/Eop_framework/test/all/scaleMonitor_all.root", "READ");
+    if (method == "mean")
+    {
+    inEopfile = new TFile("/afs/cern.ch/work/f/fcetorel/private/work2/Eop/Eop_framework/test/barrel/", "READ");
+    }
+
+    else if (method == "templatefit")
+    {
+    inEopfile = new TFile("/afs/cern.ch/work/f/fcetorel/private/work2/Eop/Eop_framework/test/barrel_template_EflowCorr/IEta_-85_85_IPhi_1_360/out_file_scalemonitoring.root", "READ");
+    }
+
+    else 
+    {
+    cout << "No acceptable method, try ./SaveICmap_EopCorr [method=mean, templatefit]" << endl;
+    return 0;
+    }
     unsigned runmin, runmax; 
-    float scale_Eop_mean, scale_err_Eop_mean; 
+    float scale_Eop, scaleunc_Eop; 
     TTree *t= (TTree*)inEopfile->Get("ciao"); 
     t->SetBranchAddress("runmin",&runmin); 
     t->SetBranchAddress("runmax", &runmax); 
-    t->SetBranchAddress("scale_Eop_mean", &scale_Eop_mean); 
-    t->SetBranchAddress("scale_err_Eop_mean", &scale_err_Eop_mean); 
+    t->SetBranchAddress("scale_Eop_"+method, &scale_Eop); 
+    t->SetBranchAddress("scaleunc_Eop_"+method, &scaleunc_Eop); 
 
     float norm, mean, emean; 
-    for (int i= 0; i<5; i++) // normalization to the w mean of first 5 points
+  /*  for (int i= 0; i<5; i++) // normalization to the w mean of first 5 points
     {
        t->GetEntry(i);
-       mean += scale_Eop_mean*(1./scale_err_Eop_mean)*(1./scale_err_Eop_mean);
-       emean += (1./scale_err_Eop_mean)*(1./scale_err_Eop_mean);
+       mean += scale_Eop*(1./scaleunc_Eop)*(1./scaleunc_Eop);
+       emean += (1./scaleunc_Eop)*(1./scaleunc_Eop);
        //cout << "This is mean" << mean << endl; 
     }
-    norm = mean/emean;
+    norm = mean/emean;*/
    // cout << "First point for normalization "<< norm << endl; 
 
-
+    t -> GetEntry(0);
+    norm = scale_Eop;
     for (long ientry=0; ientry < t->GetEntries(); ientry++)
     {
        t->GetEntry(ientry);
+
+       cout << norm << endl;
+       cout << runmin << endl;
+       cout << runmax << endl;
        
        for ( std::map<std::vector<int>, TH2D*>::iterator imap=hMap.begin(); imap!=hMap.end(); imap++)
        {
@@ -92,10 +111,10 @@ int main(int argc, char *argv[])
          if (runmin == unsigned(imap->first.at(0)) && runmax== unsigned(imap->first.at(1)))
          {
            //cout << "Match" << endl;  
-           cout << "Before Normalization " << scale_Eop_mean <<  " : " << "normalization" << norm << endl;
-           scale_Eop_mean = scale_Eop_mean / norm;   
-           cout << "After Normalization " << scale_Eop_mean << endl;
-           imap->second ->Scale(1./scale_Eop_mean); 
+           cout << "Before Normalization " << scale_Eop <<  " : " << "normalization" << norm << endl;
+           scale_Eop = scale_Eop / norm;   
+           cout << "After Normalization " << scale_Eop << endl;
+           imap->second ->Scale(1./scale_Eop); 
            break;     
          
          }
@@ -105,30 +124,16 @@ int main(int argc, char *argv[])
      }
 
 
-
-
-
-
-
-
   
-   TFile *outFile = new TFile("testICEBwEop.root","RECREATE");
+   TFile *outFile = new TFile("/afs/cern.ch/work/f/fcetorel/private/work2/Eop/Eop_framework/data/ICEBwEopNorm_"+method+".root","RECREATE");
    for ( std::map<std::vector<int>, TH2D*>::iterator imap=hMap.begin(); imap!=hMap.end(); imap++)
    {
-
-    /*  impa->second()->SetContour(100000);
-      impa->second()->SetAxisRange(0.98, 1.02, "Z");
-
-      impa->second() -> SetTitle((to_string(firstRun[i])+"_"+to_string(lastRun[i])).c_str());
-      impa->second() -> SetName(("map_ic_"+to_string(i)).c_str());*/
       imap->second -> Write();
   }
 
 
 
    cout << ">>>>>>>> Transferring IC maps with also E/p correction in data/" << outFile->GetName() << endl;
-
-   system("mv testICEBwEop.root /afs/cern.ch/work/f/fcetorel/private/work2/Eop/Eop_framework/data");
 
 
    outFile -> Close();

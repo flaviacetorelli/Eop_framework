@@ -40,22 +40,29 @@ using namespace std;
 int main(int argc, char *argv[])
 {
 
-gStyle->SetOptStat(111);
-gStyle->SetOptFit(111);
-TH1F* histo_slope = new TH1F("histo_slope","harness slope",100,-10.e-9,2.e-9);
+  gStyle->SetOptStat(111);
+  gStyle->SetOptFit(111);
+  if (argc < 2 ) 
+  {
+    cout << ">>>>>>>> Missing the method, try : ./EopCorr [method = mean, templatefit] " << endl;
+    return 0;
+  }
+
+  TString method = argv[1];
+
 
   cout << ">>>>>>>> Opening file : ";
-  TFile* f = new TFile("/afs/cern.ch/work/f/fcetorel/private/work2/Eop/Eop_framework/test/all/scaleMonitor_all.root");
+  TFile* f = new TFile("/afs/cern.ch/work/f/fcetorel/private/work2/Eop/Eop_framework/test/barrel_template_EflowCorr/IEta_-85_85_IPhi_1_360/out_file_scalemonitoring.root");
   cout << f->GetName() << endl;
   TTree *t= (TTree*)f->Get("ciao");
  unsigned timemin;
-  float scale_Eop_mean, scale_err_Eop_mean; 
+  float scale_Eop, scaleunc_Eop; 
   double norm; 
   TGraphErrors *gr1 = new TGraphErrors(); 
 
   t->SetBranchAddress("timemin", &timemin); 
-  t->SetBranchAddress("scale_Eop_mean", &scale_Eop_mean); 
-  t->SetBranchAddress("scale_err_Eop_mean", &scale_err_Eop_mean); 
+  t->SetBranchAddress("scale_Eop_"+method, &scale_Eop); 
+  t->SetBranchAddress("scaleunc_Eop_"+method, &scaleunc_Eop); 
   
 
   double mean, emean; 
@@ -63,8 +70,8 @@ TH1F* histo_slope = new TH1F("histo_slope","harness slope",100,-10.e-9,2.e-9);
   for (int i= 0; i<5; i++) // normalization to the w mean of first 5 points
   {
   t->GetEntry(i);
-  mean += scale_Eop_mean*(1./scale_err_Eop_mean)*(1./scale_err_Eop_mean);
-  emean += (1./scale_err_Eop_mean)*(1./scale_err_Eop_mean);
+  mean += scale_Eop*(1./scaleunc_Eop)*(1./scaleunc_Eop);
+  emean += (1./scaleunc_Eop)*(1./scaleunc_Eop);
   //cout << "This is mean" << mean << endl; 
   }
   norm = mean/emean;
@@ -74,8 +81,8 @@ TH1F* histo_slope = new TH1F("histo_slope","harness slope",100,-10.e-9,2.e-9);
   for (long i = 0; i< t->GetEntries(); i++)
   {
   t->GetEntry(i);
-  gr1->SetPoint(i,double(timemin), double(scale_Eop_mean)/norm); 
-  gr1->SetPointError(i,0,scale_err_Eop_mean);
+  gr1->SetPoint(i,double(timemin), double(scale_Eop)/norm); 
+  gr1->SetPointError(i,0,scaleunc_Eop);
 
   }
 
@@ -89,10 +96,10 @@ TH1F* histo_slope = new TH1F("histo_slope","harness slope",100,-10.e-9,2.e-9);
   gr1->GetXaxis()->SetTimeDisplay(1);
   gr1->GetXaxis()->SetTimeFormat("%d/%m%F1970-01-01 00:00:00");
 
-  c.SaveAs("Eop_Barrel.png");
-  c.SaveAs("Eop_Barrel.pdf");
-  c.SaveAs("Eop_Barrel.root");
+  c.SaveAs("Eop_Barrel_"+method+".png");
+  c.SaveAs("Eop_Barrel_"+method+".pdf");
+  c.SaveAs("Eop_Barrel_"+method+".root");
   system("mv *.png /eos/user/f/fcetorel/www/PhiSym/eflow/cfr_Eop/");
   system("mv *.pdf /eos/user/f/fcetorel/www/PhiSym/eflow/cfr_Eop/");
-  system("mv *Eop_Barrel.root /eos/user/f/fcetorel/www/PhiSym/eflow/cfr_Eop/");
+  system("mv *Eop_Barrel*.root /eos/user/f/fcetorel/www/PhiSym/eflow/cfr_Eop/");
 }
