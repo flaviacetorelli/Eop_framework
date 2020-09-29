@@ -1,3 +1,6 @@
+
+
+
 /*
  g++ -Wall -o SaveICmap `root-config --cflags --glibs` -L $ROOTSYS/lib  SaveICmap.cpp
  */
@@ -40,23 +43,25 @@ int main(int argc, char *argv[])
 {
     gStyle -> SetOptStat(0);
    cout << ">>>>>>>> Opening file :";
-    TFile* f = new TFile("/afs/cern.ch/work/f/fcetorel/private/work2/EFlow/CMSSW_10_5_0/src/PhiSym/EcalCalibAlgos/macros/history_eflow_2017_new.root");
+    TFile* f = new TFile("/afs/cern.ch/work/f/fcetorel/private/work2/Eflow_2/CMSSW_10_6_1/src/PhiSym/EcalCalibAlgos/macros/history_EB_eflow_2018_Rereco_2d.root","read");
     TTree *ZeroBias= (TTree*)f->Get("eb");
    cout << f->GetName() << endl;
     
-
+    int nIOV = 62; //111 for 1 day, 62 for 2 days
     int ieta = 0; 
     int iphi = 0; 
-    int minRun[104] = {0}; 
-    int msxRun[104] = {0}; 
-    int firstRun[104] = {0}; 
-    int lastRun[104] = {0}; 
-    float ic_ratio_eflow[104] = {0.}; 
+    int minRun[nIOV] = {0}; 
+    int msxRun[nIOV] = {0}; 
+    int firstRun[nIOV] = {0}; 
+    int lastRun[nIOV] = {0}; 
+    int firstLumi[nIOV] = {0}; 
+    int lastLumi[nIOV] = {0};
+    float ic_ratio_eflow[nIOV] = {0.}; 
    
-    TH2D  *map_ic_xiov[104]; 
+    TH2D  *map_ic_xiov[nIOV]; 
 
       cout << ">>>>>>>> Filling IC maps " << endl;
-    for (int i=0; i<104; i++) // TH2D range is set compatible with Eop
+    for (int i=0; i<nIOV; i++) // TH2D range is set compatible with Eop
     {
     map_ic_xiov[i] = new TH2D(("map_ic_xiov_"+to_string(i)).c_str(), "PhiSym IC/IC_{0}s map xiov;#it{i#phi};#it{i#eta}", 360, 1, 361, 171, -85, 86);
     }
@@ -66,6 +71,8 @@ int main(int argc, char *argv[])
     ZeroBias->SetBranchAddress("iphi",&iphi);
     ZeroBias->SetBranchAddress("firstRun",firstRun);
     ZeroBias->SetBranchAddress("lastRun",lastRun);
+    ZeroBias->SetBranchAddress("firstLumi",firstLumi);
+    ZeroBias->SetBranchAddress("lastLumi",lastLumi);
 
     int n_entries = ZeroBias->GetEntries(); 
     for (int i=1; i< n_entries;  i++)
@@ -73,7 +80,7 @@ int main(int argc, char *argv[])
       float ic_ratio_eflow_avg = 0.;
       ZeroBias -> GetEntry(i);
 
-      for (int l = 0 ; l < 104; l++ )
+      for (int l = 0 ; l < nIOV; l++ )
       {  
         if (ic_ratio_eflow[l] >= 0) map_ic_xiov[l]->Fill(iphi,ieta,ic_ratio_eflow[l]);
         else  map_ic_xiov[l]->Fill(iphi,ieta,0.);
@@ -83,15 +90,17 @@ int main(int argc, char *argv[])
     }
     
    cout << ">>>>>>>> Saving IC maps" << endl;
-   TFile *MyFile = new TFile("testICEB1.root","RECREATE");
+   TFile *MyFile = new TFile("ICch_EB_2018Rereco_2d.root","RECREATE");
+   TString filename =  MyFile->GetName();
 
-    for (int i = 0; i<104; i++)
+    for (int i = 0; i<nIOV; i++)
     {
     
       map_ic_xiov[i]->SetContour(100000);
       map_ic_xiov[i]->SetAxisRange(0.98, 1.02, "Z");
 
-      map_ic_xiov[i] -> SetTitle((to_string(firstRun[i])+"_"+to_string(lastRun[i])).c_str());
+      map_ic_xiov[i] -> SetTitle((to_string(firstRun[i])+"-"+to_string(firstLumi[i])+"_"+to_string(lastRun[i])+"-"+to_string(lastLumi[i])).c_str());
+      //cout << map_ic_xiov[i] -> GetTitle() << endl;
       map_ic_xiov[i] -> SetName(("map_ic_"+to_string(i)).c_str());
       //map_ic_xiov[i] -> Write(("map_ic_"+to_string(firstRun[i])+"_"+to_string(lastRun[i])).c_str());
       map_ic_xiov[i] -> Write(("map_ic_"+to_string(i)).c_str());
@@ -99,9 +108,9 @@ int main(int argc, char *argv[])
 
     }
 
-   cout << ">>>>>>>> Transferring IC maps in data/testICEB1.root" << endl;
+   cout << ">>>>>>>> Transferring IC maps in data/" << MyFile->GetName() << endl;
 
-   system("mv testICEB1.root /afs/cern.ch/work/f/fcetorel/private/work2/Eop/Eop_framework/data");
+   system("mv " + filename + " /afs/cern.ch/work/f/fcetorel/private/work2/Eop/Eop_framework/data");
 
 
    MyFile -> Close();

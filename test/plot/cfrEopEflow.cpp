@@ -2,7 +2,6 @@
  g++ -Wall -o cfrEopEflow `root-config --cflags --glibs` -L $ROOTSYS/lib  cfrEopEflow.cpp
  */
 
-
 #include "TROOT.h"
 #include "TStyle.h"
 #include "TFile.h"
@@ -34,13 +33,11 @@
 #include <cmath>
 #include <vector>
 using namespace std;
-bool pos = false; 
-
-void doEopEflow( TString file2, TString cut, TString hr, TString output)
+void doEopEflow(TString file1, TString file2,  TString  hr, TString output)
 {
     TChain* ZeroBias;
     ZeroBias = new TChain("eb");
-    ZeroBias -> Add("/afs/cern.ch/work/f/fcetorel/private/work2/prova_slc6/CMSSW_9_4_0/src/PhiSym/EcalCalibAlgos/macros/history_eflow_2017.root" );
+    ZeroBias -> Add(file1);
     ZeroBias -> SetMarkerStyle(20);
     ZeroBias -> SetMarkerColor(kBlue+2);
     
@@ -48,7 +45,7 @@ void doEopEflow( TString file2, TString cut, TString hr, TString output)
     TFile* f2 = new TFile(file2);
     cout << f2->GetName() << endl;   
     gStyle->SetOptStat(0);
- TCanvas c;
+    TCanvas c;
     c.SetGrid();
     unsigned timemin_nc;
     float  scale_Eop_mean_nc, scale_err_Eop_mean_nc; 
@@ -88,6 +85,12 @@ void doEopEflow( TString file2, TString cut, TString hr, TString output)
    
     gPad->Update();
     TString cut1 = " & n_events > 100e6";
+    std::string::size_type sz;   // convert string into int
+    run_num.push_back(stoi(hr.sustr(4), &sz));   
+    run_num.push_back(stoi(title.substr(sz+1)));
+    
+    TString cut = ("ieta >="+str(ietamin) +" && ieta <="+str(ietamax)+" && iphi >= "+str(iphimin)+" && iphi <="+str(iphimax)).c_str()
+
     ZeroBias->Draw("ic_ratio_eflow:avg_time",cut + cut1,"prof");
     TH2F *gr1 = (TH2F*)gPad->GetPrimitive("htemp");
     gr1->SetTitle("; Time(day/month); Relative response ");
@@ -113,80 +116,18 @@ void doEopEflow( TString file2, TString cut, TString hr, TString output)
     system("mv *.pdf "+output);
     
 }
-
-
 int main(int argc, char *argv[])
 {
-pos = (argc!=1 ? 0 : 1);
-if (pos) cout << ">>> Doing positive harness " << endl; 
-else cout << ">>> Doing negative harness " << endl; 
+string method=argv[1];
+string fold_EFlow = "/eos/user/f/fcetorel/www/PhiSym/eflow/cfr_Eop/Eflow_Eop/mean/";
+string output_EFlow = "/eos/user/f/fcetorel/www/PhiSym/eflow/cfr_Eop/Eflow_Eop/templatefit/";
+string output_cfr = "/eos/user/f/fcetorel/www/PhiSym/eflow/closuretest_2018UL_IOV1d/cfr/"+method+"/";
 
-gStyle->SetOptStat(111);
-gStyle->SetOptFit(111);
-TString  hr, f_Eop,cut, output; 
-output = "/eos/user/f/fcetorel/www/PhiSym/eflow/cfr_Eop/Eflow_Eop"; 
+vector<vector<int>> harness = GetHarnessRanges();
 
-//  module 0
-int ietamin=1; 
-int ietamax=5; 
-int iphimin=1; 
-int iphimax=20;
-
-for (int kphi = 0; kphi <18; kphi++ )
-{
-
-
-    output = "/eos/user/f/fcetorel/www/PhiSym/eflow/cfr_Eop/Eflow_Eop"; 
-    if (pos)
-    {
-      hr =("IEta_" +to_string(ietamin)+"_" +to_string(ietamax)+"_IPhi_"+to_string(iphimin+kphi*20)+"_"+to_string(iphimax+kphi*20)).c_str();
-      f_Eop="/afs/cern.ch/work/f/fcetorel/private/work2/Eop/Eop_framework/test/harness_positive_noCorr/scaleMonitor_"+hr+".root";
-      cut = ("ieta >=" +to_string(ietamin)+" && ieta<=" +to_string(ietamax)+"&& iphi>="+to_string(iphimin+kphi*20)+"&& iphi<="+to_string(iphimax+kphi*20)).c_str();
-    }
-    else
-    {
-      hr =("IEta_-" +to_string(ietamax)+"_-" +to_string(ietamin)+"_IPhi_"+to_string(iphimin+kphi*20)+"_"+to_string(iphimax+kphi*20)).c_str();
-      f_Eop="/afs/cern.ch/work/f/fcetorel/private/work2/Eop/Eop_framework/test/harness_negative_noCorr/scaleMonitor_"+hr+".root";
-      cut=("ieta>=-" +to_string(ietamax)+" && ieta<=-" +to_string(ietamin)+"&& iphi>="+to_string(iphimin+kphi*20)+"&& iphi<="+to_string(iphimax+kphi*20)).c_str();
-    }
-
-    DoPlot(f_Eop, cut, hr, output);
-
-
-  
-}
-
-//1,2,3,4 module
-ietamin=6;
-ietamax=25;
-iphimin=1;
-iphimax=10;
-for (int keta=0; keta<4; keta++ ) //loop over eta
-{
-  for (int kphi = 0; kphi <36; kphi++ )
+  for (unsigned  i = 1; i < harness.size(); i++ )
   {
-
-    if (pos)
-    {
-      hr =("IEta_" +to_string(ietamin+keta*20)+"_" +to_string(ietamax+keta*20)+"_IPhi_"+to_string(iphimin+kphi*10)+"_"+to_string(iphimax+kphi*10)).c_str();
-      f_Eop="/afs/cern.ch/work/f/fcetorel/private/work2/Eop/Eop_framework/test/harness_positive_noCorr/scaleMonitor_"+hr+".root";
-      cut = ("ieta>=" +to_string(ietamin+keta*20)+" && ieta<=" +to_string(ietamax+keta*20)+"&& iphi>="+to_string(iphimin+kphi*10)+"&& iphi<="+to_string(iphimax+kphi*10)).c_str();
-
-    }
-    else
-    {
-      hr=("IEta_-" +to_string(ietamax+keta*20)+"_-" +to_string(ietamin+keta*20)+"_IPhi_"+to_string(iphimin+kphi*10)+"_"+to_string(iphimax+kphi*10)).c_str();
-      f_Eop="/afs/cern.ch/work/f/fcetorel/private/work2/Eop/Eop_framework/test/harness_negative_noCorr/scaleMonitor_"+hr+".root";
-      cut=("ieta>=-" +to_string(ietamax+keta*20)+" & ieta<=-" +to_string(ietamin+keta*20)+" & iphi>="+to_string(iphimin+kphi*10)+" & iphi<="+to_string(iphimax+kphi*10)).c_str();
-
-    }
-    DoPlot(f_Eop, cut, hr, output);
-
+  cout << harness.at(i).at(0) << endl;
+ //doEopEFlow(fold_EFlow ,fold_fit+"fit_"+harness.at(i)+"norm_noCorr.root",  harness.at(i), output_EFlow);
   }
-}
-
-
-
-
-
 }

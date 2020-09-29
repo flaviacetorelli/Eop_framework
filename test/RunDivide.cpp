@@ -28,7 +28,7 @@ using namespace std;
 int main(int argc, char *argv[])
 {
     cout << ">>>>>>>> Opening file : ";
-    TFile* f = new TFile("/afs/cern.ch/work/f/fcetorel/private/work2/EFlow/CMSSW_10_5_0/src/PhiSym/EcalCalibAlgos/macros/history_eflow_2017_new.root");
+    TFile* f = new TFile("/afs/cern.ch/work/f/fcetorel/private/work2/Eflow_2/CMSSW_10_6_1/src/PhiSym/EcalCalibAlgos/macros/history_EB_eflow_2018_Rereco_2d.root");
     TTree *ZeroBias= (TTree*)f->Get("eb");
     cout << f->GetName() << endl;
 
@@ -39,13 +39,13 @@ int main(int argc, char *argv[])
     unsigned short lsmin = 0; 
     unsigned short lsmax = 0;
     int Nev = 0; 
-    
-    int firstLumi[104] = {0}; 
-    int lastLumi[104] = {0}; 
-    int firstRun[104] = {0}; 
-    int lastRun[104] = {0}; 
-    int n_events[104] = {0}; 
-    int avg_time[104] = {0};
+    int nIOV = 113;
+    int firstLumi[nIOV] = {0}; 
+    int lastLumi[nIOV] = {0}; 
+    int firstRun[nIOV] = {0}; 
+    int lastRun[nIOV] = {0}; 
+    int n_events[nIOV] = {0}; 
+    int avg_time[nIOV] = {0};
 
 
     ZeroBias->SetBranchAddress("firstLumi",firstLumi);
@@ -62,9 +62,9 @@ int main(int argc, char *argv[])
 
    cout << ">>>>>>>> Saving TimeBin in ./test" << endl;
 
-    for ( int i = 0 ; i < 104; i++ )
+    for ( int i = 0 ; i < nIOV; i++ )
     {
-      TFile *MyFile = new TFile(("runranges_"+to_string(firstRun[i])+"_"+to_string(lastRun[i])+".root").c_str(),"RECREATE");
+      TFile *MyFile = new TFile(("runranges_"+to_string(firstRun[i])+"-"+to_string(firstLumi[i])+"_"+to_string(lastRun[i])+"-"+to_string(lastLumi[i])+".root").c_str(),"RECREATE");
       TTree* out = new TTree("ciao","ciao");    
       out->Branch("runmin", &runmin, "runmin/i");
       out->Branch("runmax", &runmax, "runmax/i");

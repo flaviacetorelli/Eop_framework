@@ -119,8 +119,8 @@ void doSuperTGraph(vector<string> file, TString nameCanvas,  TString nameOBJ, TS
   TMultiGraph *mg = new TMultiGraph();
   TLegend *leg;
   leg = new TLegend(0.58,0.75,0.9,0.9);
-  //int color[3]= {kBlue+1,kRed+1,kGreen+2}; 
-  int color[3]= {kViolet+1,kGreen+2}; 
+  int color[3]= {kBlue+1,kRed+1,kGreen+2}; 
+  //int color[3]= {kViolet+1,kGreen+2}; 
   for (unsigned i=0; i<grs.size(); i++)
   {
   Color_t cl = Color_t(color[i])  ;
@@ -169,8 +169,8 @@ void doSuperHisto(vector<string> file, TString nameCanvas,  TString nameOBJ, TSt
   TCanvas c; 
   c.cd(); 
   TLegend leg;
-  //int color[3]= {kBlue+1,kRed+1,kGreen+2}; 
-  int color[3]= {kViolet+1,kGreen+2}; 
+  int color[3]= {kBlue+1,kRed+1,kGreen+2}; 
+  //int color[3]= {kViolet+1,kGreen+2}; 
   std::stringstream ss[3];
   for (unsigned i=0; i<hs.size(); i++)
   {
@@ -246,31 +246,32 @@ int main(int argc, char *argv[])
 string method=argv[1];
 string fold_EFlow = "/eos/user/f/fcetorel/www/PhiSym/eflow/cfr_Eop/Eflow_Eop/mean/";
 string output_EFlow = "/eos/user/f/fcetorel/www/PhiSym/eflow/cfr_Eop/Eflow_Eop/templatefit/";
-string fold_slope = "/eos/user/f/fcetorel/www/PhiSym/eflow/cfr_Eop/harness_slope/histo_slope/"+method+"/"; 
-string fold_fit = "/eos/user/f/fcetorel/www/PhiSym/eflow/cfr_Eop/harness_slope/fit/templatefit/"; 
-string fold_RMS = "/eos/user/f/fcetorel/www/PhiSym/eflow/cfr_Eop/harness_slope/RMS/"+method+"/"; 
-string output_slope = "/eos/user/f/fcetorel/www/PhiSym/eflow/cfr_Eop/harness_slope/histo_slope/"+method+"/";
-string output_RMS = "/eos/user/f/fcetorel/www/PhiSym/eflow/cfr_Eop/harness_slope/RMS/"+method+"/";
+string fold_slope = "/eos/user/f/fcetorel/www/PhiSym/eflow/closuretest_2018UL_IOV1d/histo_slope/"+method+"/"; 
+string fold_fit = "/eos/user/f/fcetorel/www/PhiSym/eflow/closuretest_2018UL_IOV1d/fit/"+method+"/"; 
+string fold_RMS = "/eos/user/f/fcetorel/www/PhiSym/eflow/closuretest_2018UL_IOV1d/RMS/"+method+"/"; 
+string output_slope = fold_slope;
+string output_RMS = fold_RMS;
 
-string output_cfr = "/eos/user/f/fcetorel/www/PhiSym/eflow/cfr_Eop/harness_slope/cfr/"+method+"/"; 
-//vector<string> legend_label = {"not corrected","corrected w Eflow","corrected w EFlow + Eop"};
-vector<string> legend_label = {"corrected w E/p","corrected w EFlow + Eop", ""};
-    string har = "IEta_-45_-26_IPhi_141_150";
-    //string har = "IEta_6_25_IPhi_221_230";
-  vector<string> harness = GetHarnessRanges();
-doSuperTGraph({fold_fit+"fit_"+har+"norm_oldCorr.root",fold_fit+"fit_"+har+"norm_EopCorr.root"}, "c1", "gr","E/p",{0.94,1.04}, har, legend_label, output_cfr+"oldCorr/", false); 
- /* for (unsigned  i = 1; i < harness.size(); i++ )
+string output_cfr = "/eos/user/f/fcetorel/www/PhiSym/eflow/closuretest_2018UL_IOV1d/cfr/"+method+"/"; 
+vector<string> legend_label = {"not corrected","corrected w Eflow","corrected w EFlow + Eop"};
+
+vector<string> harness = GetHarnessRanges();
+
+  for (unsigned  i = 1; i < harness.size(); i++ )
   {
-doSuperTGraph({fold_fit+"fit_"+harness.at(i)+"norm_oldCorr.root",fold_fit+"fit_"+harness.at(i)+"norm_EopCorr.root"}, "c1", "gr","E/p",{0.94,1.04}, harness.at(i), legend_label, output_cfr+"oldCorr/", false); 
-//doEopEFlow(fold_EFlow+"cfr_"+harness.at(i)+".root",fold_fit+"fit_"+harness.at(i)+"norm_noCorr.root", "c1", "gr", harness.at(i), output_EFlow); 
-    // doSuperTGraph({fold_fit+"fit_"+harness.at(i)+"norm_noCorr.root",fold_fit+"fit_"+harness.at(i)+"norm_EFlowCorr.root"}, "c1", "gr","E/p",{0.94,1.04}, harness.at(i), legend_label, output_cfr, false); 
-     //doSuperTGraph({fold_fit+"fit_"+harness.at(i)+"norm_noCorr.root",fold_fit+"fit_"+harness.at(i)+"norm_EFlowCorr.root",fold_fit+"fit_"+harness.at(i)+"norm_EopCorr.root"}, "c1", "gr","E/p",{0.94,1.04}, harness.at(i), legend_label, output_cfr+"wEopCorr/", false); 
-  }
+
+  //doEopEFlow(fold_EFlow+"cfr_"+harness.at(i)+".root",fold_fit+"fit_"+harness.at(i)+"norm_noCorr.root", "c1", "gr", harness.at(i), output_EFlow); 
+    //doSuperTGraph({fold_fit+"fit_"+harness.at(i)+"norm_noCorr.root",fold_fit+"fit_"+harness.at(i)+"norm_EFlowCorr.root"}, "c1", "gr","E/p",{0.94,1.04}, harness.at(i), legend_label, output_cfr, false); 
+//     doSuperTGraph({fold_fit+"fit_"+harness.at(i)+"norm_noCorr.root",fold_fit+"fit_"+harness.at(i)+"norm_EFlowCorr.root",fold_fit+"fit_"+harness.at(i)+"norm_EopCorr.root"}, "c1", "gr","E/p",{0.94,1.04}, harness.at(i), legend_label, output_cfr+"wEopCorr/", false); 
+     doSuperTGraph({fold_fit+"fit_"+harness.at(i)+"norm_noCorr.root",fold_fit+"fit_"+harness.at(i)+"norm_EFlowCorr.root"}, "c1", "gr","E/p",{0.94,1.04}, harness.at(i), legend_label, output_cfr, false);
+ 
+ }
 
 
 
 
-
+/*
+ 
 
 
 doSuperTGraph({fold_RMS+"RMS_mod4_noCorr.root",fold_RMS+"RMS_mod4_EFlowCorr.root"},  "c1", "gr","Spread", "RMS_mod4", legend_label, output_RMS, false); 
@@ -285,19 +286,19 @@ doSuperHisto({fold_slope+"mod2_norm_noCorr.root",fold_slope+"mod2_norm_EFlowCorr
 doSuperHisto({fold_slope+"mod3_norm_noCorr.root",fold_slope+"mod3_norm_EFlowCorr.root"},  "c1", "histo_slope_mod3","mod3_norm",legend_label, output_slope); 
 doSuperHisto({fold_slope+"mod4_norm_noCorr.root",fold_slope+"mod4_norm_EFlowCorr.root"},  "c1", "histo_slope_mod4","mod4_norm",legend_label, output_slope); 
 
-doSuperTGraph({fold_RMS+"RMS_mod4_noCorr.root",fold_RMS+"RMS_mod4_EFlowCorr.root",fold_RMS+"RMS_mod4_EopCorr.root"},  "c1", "gr","Spread",{0.,0.03}, "RMS_mod4_all", legend_label, output_RMS); 
-doSuperTGraph({fold_RMS+"RMS_mod3_noCorr.root",fold_RMS+"RMS_mod3_EFlowCorr.root",fold_RMS+"RMS_mod3_EopCorr.root"},  "c1", "gr","Spread",{0.,0.03}, "RMS_mod3_all", legend_label, output_RMS); 
-doSuperTGraph({fold_RMS+"RMS_mod2_noCorr.root",fold_RMS+"RMS_mod2_EFlowCorr.root",fold_RMS+"RMS_mod2_EopCorr.root"},  "c1", "gr","Spread",{0.,0.03}, "RMS_mod2_all", legend_label, output_RMS); 
-doSuperTGraph({fold_RMS+"RMS_mod01_noCorr.root",fold_RMS+"RMS_mod01_EFlowCorr.root",fold_RMS+"RMS_mod01_EopCorr.root"},  "c1", "gr","Spread",{0.,0.03}, "RMS_mod01_all", legend_label, output_RMS); 
-doSuperTGraph({fold_RMS+"RMS_noCorr.root",fold_RMS+"RMS_EFlowCorr.root",fold_RMS+"RMS_EopCorr.root"},  "c1", "gr","Spread",{0.,0.03},"RMS_all", legend_label, output_RMS); 
+doSuperTGraph({fold_RMS+"RMS_mod4_noCorr.root",fold_RMS+"RMS_mod4_EflowCorr.root",fold_RMS+"RMS_mod4_EopCorr.root"},  "c1", "gr","Spread",{0.,0.03}, "RMS_mod4_all", legend_label, output_RMS, true); 
+doSuperTGraph({fold_RMS+"RMS_mod3_noCorr.root",fold_RMS+"RMS_mod3_EflowCorr.root",fold_RMS+"RMS_mod3_EopCorr.root"},  "c1", "gr","Spread",{0.,0.03}, "RMS_mod3_all", legend_label, output_RMS, true); 
+doSuperTGraph({fold_RMS+"RMS_mod2_noCorr.root",fold_RMS+"RMS_mod2_EflowCorr.root",fold_RMS+"RMS_mod2_EopCorr.root"},  "c1", "gr","Spread",{0.,0.03}, "RMS_mod2_all", legend_label, output_RMS, true); 
+doSuperTGraph({fold_RMS+"RMS_mod01_noCorr.root",fold_RMS+"RMS_mod01_EflowCorr.root",fold_RMS+"RMS_mod01_EopCorr.root"},  "c1", "gr","Spread",{0.,0.03}, "RMS_mod01_all", legend_label, output_RMS, true); 
+doSuperTGraph({fold_RMS+"RMS_noCorr.root",fold_RMS+"RMS_EflowCorr.root",fold_RMS+"RMS_EopCorr.root"},  "c1", "gr","Spread",{0.,0.03},"RMS_all", legend_label, output_RMS, true); 
 
 doSuperHisto({fold_slope+"inclusive_norm_noCorr.root",fold_slope+"inclusive_norm_EFlowCorr.root", fold_slope+"inclusive_norm_EopCorr.root"},  "c1", "histo_slope","inclusive_norm_all",legend_label, output_slope); 
 doSuperHisto({fold_slope+"mod01_norm_noCorr.root",fold_slope+"mod01_norm_EFlowCorr.root",fold_slope+"mod01_norm_EopCorr.root"},  "c1", "histo_slope_mod01","mod01_norm_all",legend_label, output_slope); 
 doSuperHisto({fold_slope+"mod2_norm_noCorr.root",fold_slope+"mod2_norm_EFlowCorr.root",fold_slope+"mod2_norm_EopCorr.root"},  "c1", "histo_slope_mod2","mod2_norm_all",legend_label, output_slope); 
 doSuperHisto({fold_slope+"mod3_norm_noCorr.root",fold_slope+"mod3_norm_EFlowCorr.root", fold_slope+"mod3_norm_EopCorr.root"},  "c1", "histo_slope_mod3","mod3_norm_all",legend_label, output_slope); 
 doSuperHisto({fold_slope+"mod4_norm_noCorr.root",fold_slope+"mod4_norm_EFlowCorr.root", fold_slope+"mod4_norm_EopCorr.root"},  "c1", "histo_slope_mod4","mod4_norm_all",legend_label, output_slope); 
-*/
-/*
+
+
 
 
 doSuperTGraph(fold_RMS+"RMS_mod01.root", fold_RMS+"RMS_mod01noCorr.root",fold_RMS+"RMS_mod01test.root", "c1", "gr", "RMS_mod01_new"); 

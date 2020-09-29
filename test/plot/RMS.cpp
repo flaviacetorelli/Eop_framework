@@ -85,7 +85,8 @@ vector<double> doMean(TString file, TString method)
 
 void doRMSPlots(TH1F** histo, TString title ,TString output)
 {
- TFile* f = new TFile("/afs/cern.ch/work/f/fcetorel/private/work2/Eop/Eop_framework/test/barrel_template_EflowCorr/IEta_-85_85_IPhi_1_360/out_file_scalemonitoring.root");
+
+ TFile* f = new TFile("/afs/cern.ch/work/f/fcetorel/private/work2/Eop/Eop_framework/test/2018/harness_template_barrel/IEta_-85_85_IPhi_1_360/out_file_scalemonitoring.root");
   //cout << f->GetName() << endl;
 
   TTree *t= (TTree*)f->Get("ciao");
@@ -152,17 +153,17 @@ string ntuple = argv[1];
 string label = argv[2];
 string method = argv[3];
 vector<string> harness = GetHarnessRanges();
-TString output="/eos/user/f/fcetorel/www/PhiSym/eflow/cfr_Eop/harness_slope/RMS/"+method+"/";
-
+TString output="/eos/user/f/fcetorel/www/PhiSym/eflow/closuretest_2018UL_IOV1d/RMS/"+method+"/";
+int nIOV = 109;
 gStyle->SetOptStat(111);
 gStyle->SetOptFit(111);
-TH1F* histo[100];
-TH1F* histo_01[100];
-TH1F* histo_2[100];
-TH1F* histo_3[100];
-TH1F* histo_4[100];
+TH1F* histo[nIOV];
+TH1F* histo_01[nIOV];
+TH1F* histo_2[nIOV];
+TH1F* histo_3[nIOV];
+TH1F* histo_4[nIOV];
 
-  for (int ibin=0; ibin<100; ibin++)
+  for (int ibin=0; ibin<nIOV; ibin++)
   {
     histo[ibin] = new TH1F(("histo_"+ std::to_string(ibin)).c_str(), "; Eop_mean; Counts", 50, 0.94, 1.04 );
     histo_01[ibin] = new TH1F(("histo_01_"+ std::to_string(ibin)).c_str(), "; Eop_mean; Counts", 50, 0.94, 1.04 );

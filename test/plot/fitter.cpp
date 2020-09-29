@@ -98,7 +98,10 @@ float GetSlope(TString file, TString hr, TString method, TString label, TString 
   c.SetGrid(); 
   gr1->SetMarkerColor(2);
   gr1->SetMarkerStyle(21); 
+  gr1->SetTitle("; Time(day/month); E/p");
   gr1->Draw("ap"); 
+  gr1->GetXaxis()->SetTimeDisplay(1);
+  gr1->GetXaxis()->SetTimeFormat("%d/%m%F1970-01-01 00:00:00");
 
 
   //gr1->GetYaxis()->SetRangeUser(0.94,1.06);  
@@ -127,7 +130,7 @@ int main(int argc, char *argv[])
   cout << ">>> Doing these samples " << endl; 
   cout << argv[1] << endl; 
 
- // string fold = "/afs/cern.ch/work/f/fcetorel/private/work2/Eop/Eop_framework/test/";
+
   string ntuple = argv[1];
   string label = argv[2];
   string method = argv[3];
@@ -142,37 +145,35 @@ int main(int argc, char *argv[])
   TH1F* histo_slope_mod4 = new TH1F("histo_slope_mod4","harness slope",100,-10.e-9,2.e-9);
 
 
-  TString output="/eos/user/f/fcetorel/www/PhiSym/eflow/cfr_Eop/harness_slope/fit/"+method+"/"; 
+  TString output="/eos/user/f/fcetorel/www/PhiSym/eflow/closuretest_2018UL_IOV1d/fit/"+method+"/"; 
+  TString output_slope = "/eos/user/f/fcetorel/www/PhiSym/eflow/closuretest_2018UL_IOV1d/histo_slope/"+method+"/";
   vector<string> harness = GetHarnessRanges();
 
-  //for (unsigned  i = 0; i < harness.size(); i++ )
-  //{
+    for (unsigned  i = 0; i < harness.size(); i++ )
+    {
     double slope = 0.;
 
-    string har = "IEta_-45_-26_IPhi_141_150";
-   // TString fold="/afs/cern.ch/work/f/fcetorel/private/work2/Eop/Eop_framework/test/"+ntuple+"/";
-    //TString file=fold + harness.at(i)+"/out_file_*_scalemonitoring.root";
-    //slope = GetSlope(file, harness.at(i), method, label, output);  
+
     TString fold="/afs/cern.ch/work/f/fcetorel/private/work2/Eop/Eop_framework/test/"+ntuple+"/";
-    TString file=fold + har+"/out_file_*_scalemonitoring.root";
-    slope = GetSlope(file, har, method, label, output);  
+    TString file=fold + harness.at(i)+"/out_file_*_scalemonitoring.root";
+    slope = GetSlope(file, harness.at(i), method, label, output);  
 
     histo_slope -> Fill(slope);  
 
-   /* int etamin = stoi((harness.at(i)).substr(5),nullptr);
+   int etamin = stoi((harness.at(i)).substr(5),nullptr);
     //cout << "This is " << etamin << endl; 
     if (etamin == -5 || etamin == 1 || etamin == 6 || etamin== -25 ){ histo_slope_mod01 -> Fill(slope); cout << "Filling 1" << endl;}
     else if (etamin == -45 || etamin== 26 ) {histo_slope_mod2 -> Fill(slope);  cout << "Filling 2" << endl;}
     else if (etamin == -65 || etamin== 46 ) {histo_slope_mod3 -> Fill(slope);  cout << "Filling 3" << endl;}
     else if (etamin == -85 || etamin== 66 ) {histo_slope_mod4 -> Fill(slope);  cout << "Filling 4" << endl;}
-  //}
+   }
 
+  
+  SaveHisto(histo_slope, label, output_slope+"/inclusive_norm");
+  SaveHisto(histo_slope_mod01, label,  output_slope+"/mod01_norm");
+  SaveHisto(histo_slope_mod2, label,  output_slope+"/mod2_norm");
+  SaveHisto(histo_slope_mod3, label, output_slope+"/mod3_norm");
+  SaveHisto(histo_slope_mod4, label, output_slope+"/mod4_norm");
 
-  SaveHisto(histo_slope, label, "/eos/user/f/fcetorel/www/PhiSym/eflow/cfr_Eop/harness_slope/histo_slope/"+method+"/inclusive_norm");
-  SaveHisto(histo_slope_mod01, label,  "/eos/user/f/fcetorel/www/PhiSym/eflow/cfr_Eop/harness_slope/histo_slope/"+method+"/mod01_norm");
-  SaveHisto(histo_slope_mod2, label,  "/eos/user/f/fcetorel/www/PhiSym/eflow/cfr_Eop/harness_slope/histo_slope/"+method+"/mod2_norm");
-  SaveHisto(histo_slope_mod3, label, "/eos/user/f/fcetorel/www/PhiSym/eflow/cfr_Eop/harness_slope/histo_slope/"+method+"/mod3_norm");
-  SaveHisto(histo_slope_mod4, label, "/eos/user/f/fcetorel/www/PhiSym/eflow/cfr_Eop/harness_slope/histo_slope/"+method+"/mod4_norm");
-*/
 }
 

@@ -52,7 +52,7 @@ int main(int argc, char *argv[])
 
 
   cout << ">>>>>>>> Opening file : ";
-  TFile* f = new TFile("/afs/cern.ch/work/f/fcetorel/private/work2/Eop/Eop_framework/test/barrel_template_EflowCorr/IEta_-85_85_IPhi_1_360/out_file_scalemonitoring.root");
+  TFile* f = new TFile("/afs/cern.ch/work/f/fcetorel/private/work2/Eop/Eop_framework/test/Rereco2018/IOV1d/harness_template_barrel/IEta_-85_85_IPhi_1_360/out_file_scalemonitoring.root");
   cout << f->GetName() << endl;
   TTree *t= (TTree*)f->Get("ciao");
  unsigned timemin;
@@ -66,7 +66,9 @@ int main(int argc, char *argv[])
   
 
   double mean, emean; 
-
+  t -> GetEntry(0);
+  norm = scale_Eop;
+  /*
   for (int i= 0; i<5; i++) // normalization to the w mean of first 5 points
   {
   t->GetEntry(i);
@@ -76,13 +78,14 @@ int main(int argc, char *argv[])
   }
   norm = mean/emean;
   //cout << "First point for normalization "<< norm << endl; 
-
+  */
 
   for (long i = 0; i< t->GetEntries(); i++)
   {
   t->GetEntry(i);
   gr1->SetPoint(i,double(timemin), double(scale_Eop)/norm); 
   gr1->SetPointError(i,0,scaleunc_Eop);
+  cout << i << "  " << double(scale_Eop)/norm << endl;
 
   }
 
@@ -99,7 +102,7 @@ int main(int argc, char *argv[])
   c.SaveAs("Eop_Barrel_"+method+".png");
   c.SaveAs("Eop_Barrel_"+method+".pdf");
   c.SaveAs("Eop_Barrel_"+method+".root");
-  system("mv *.png /eos/user/f/fcetorel/www/PhiSym/eflow/cfr_Eop/");
-  system("mv *.pdf /eos/user/f/fcetorel/www/PhiSym/eflow/cfr_Eop/");
-  system("mv *Eop_Barrel*.root /eos/user/f/fcetorel/www/PhiSym/eflow/cfr_Eop/");
+  system("mv *.png /eos/user/f/fcetorel/www/PhiSym/eflow/closuretest_2018Rereco/");
+  system("mv *.pdf /eos/user/f/fcetorel/www/PhiSym/eflow/closuretest_2018Rereco/");
+  system("mv *Eop_Barrel*.root /eos/user/f/fcetorel/www/PhiSym/eflow/closuretest_2018Rereco/");
 }
