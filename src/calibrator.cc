@@ -256,6 +256,7 @@ Float_t calibrator::GetICEnergyEB(const Int_t &i)
   float IC = 1.;
   int ix,iy,iz,iIOV;
 
+  
   for(unsigned int iRecHit = 0; iRecHit < ERecHit_[i]->size(); iRecHit++) 
   {
     if(recoFlagRecHit_[i]->at(iRecHit) >= 4)

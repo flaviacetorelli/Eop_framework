@@ -55,6 +55,7 @@ float MonitoringManager::GetScaleVariableValue(const int &iEle)
       return GetMee()/91. *sqrt(GetICEnergy(0)*GetICEnergy(1)) /sqrt(GetEnergy(0)*GetEnergy(1));
     else
       return this -> GetVariableValue("Eop_monitoring_scale",iEle);//method of ECALELFInterface
+
 }
 
 
@@ -277,6 +278,7 @@ void  MonitoringManager::SaveTimeBins(std::string outfilename, std::string write
       outtree->Fill();
     }
   }
+  //outtree->Print();
 
   outfile->cd();
   outtree->AutoSave();
@@ -355,6 +357,7 @@ void  MonitoringManager::FillTimeBins()
   
   long Nentries = this->GetEntries();
   cout<<Nentries<<" total entries\n"<<endl;
+  int nev=0; 
   for(long ientry=0; ientry<Nentries; ++ientry)
   {
     this->GetEntry(ientry);
@@ -370,10 +373,14 @@ void  MonitoringManager::FillTimeBins()
 	//getchar();
 	auto bin_iterator = FindBin(this->GetRunNumber(),this->GetLS(),this->GetTime());
 	if(bin_iterator!=timebins.end())
+          {
 	  bin_iterator->FillHisto( GetScaleVariableValue(iEle) );
+          nev++;
+          }
       }
     }
   }
+  cout << "Filled bin with nevents : " << nev << endl; 
 
   cout<<">> Histos filled"<<endl;
 
@@ -543,11 +550,13 @@ void  MonitoringManager::RunComputeMean(string scale)
   for(std::vector<TimeBin>::iterator it_bin = timebins.begin(); it_bin<timebins.end(); ++it_bin)
   {
     //cout<<"reading bin "<<it_bin-timebins.begin()<<endl;
+
     if(it_bin->GetNev()==0)
     {
       cout<<"[ERROR]: bin "<<it_bin-timebins.begin()<<" is empty"<<endl;
       it_bin->SetVariable("scale_"+scale, -999.);
       it_bin->SetVariable("scale_unc_"+scale, 0.);
+
     }
     else
     {

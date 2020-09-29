@@ -148,6 +148,7 @@ TimeBin& TimeBin::operator=(const TimeBin& other)
   intlumimin_   = other.intlumimin_;
   intlumimax_   = other.intlumimax_;
   Nev_          = other.Nev_;
+
   for (auto variableindex : other.variablelist_)
     variablelist_[variableindex.first] = variableindex.second;
   if(other.h_scale_)
@@ -199,10 +200,13 @@ void TimeBin::BranchOutput(TTree* outtree)
   outtree->Branch("intlumimin",&intlumimin_);
   outtree->Branch("intlumimax",&intlumimax_);
   outtree->Branch("Nev",&Nev_);
+
   for(map<string,float>::iterator it=variablelist_.begin(); it!=variablelist_.end(); ++it)
   {
     string variablename  = it->first;
     outtree->Branch(variablename.c_str(), &variablelist_[variablename]);
+    //cout << "TimeBin::BranchOutput" << endl; 
+    //cout << "variablelist_[variablename]" << variablename.c_str() << " &variablelist_[variablename] "<<variablelist_[variablename] << endl;
   }
 }
 
@@ -236,6 +240,7 @@ void TimeBin::BranchInput(TTree* intree)
 }
 
 
+
 bool TimeBin::Match(const UInt_t &run, const UShort_t &ls) const
 {
   if(run<runmin_)
@@ -256,6 +261,8 @@ bool TimeBin::Match(const UInt_t &run, const UShort_t &ls, const UInt_t &time) c
     return Match(run,ls);
   return false;
 }
+
+
 	
 bool TimeBin::InitHisto( char* name, char* title, const int &Nbin, const double &xmin, const double &xmax)
 {
@@ -270,17 +277,21 @@ bool TimeBin::InitHisto( char* name, char* title, const int &Nbin, const double 
 
 bool TimeBin::Fit(TF1* fitfunc, string fitopt, int nTrial, string TemplatePlotsFolder)
 {
+
   bool isgoodfit = FitUtils::PerseverantFit(h_scale_, fitfunc, fitopt, nTrial, TemplatePlotsFolder);
+
   return isgoodfit;
+
 }
 
 double TimeBin::GetMean()
 {
   if(!h_scale_)
     cerr<<"[ERROR]: histogram is not booked"<<endl;
-
   return h_scale_->GetMean();
+
 }
+
 
 double TimeBin::GetMeanError()
 {

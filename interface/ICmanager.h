@@ -67,6 +67,7 @@ class ICmanager
   //---dtor---
   ~ICmanager();
   //---utils--
+<<<<<<< HEAD
   Float_t  GetIC(const Int_t &ix, const Int_t &iy, const Int_t &iz);
   Float_t  GetIC(const Int_t &ix, const Int_t &iy, const Int_t &iz, const Int_t &iIOV);
   int      FindIOVNumber(const UInt_t &run, const UShort_t &ls);
@@ -117,7 +118,6 @@ class ICmanager
   const std::map<int,int> Ny_ =    {{-1,100}, {0,360}, {1,100} };
   const std::map<int,int> iymin_ = {{-1,1},   {0,1},   {1,1}   };
   const std::map<int,int> iymax_ = {{-1,100}, {0,360}, {1,100} };
-
 };
 
 TH2D* GetICpull(TH2D* h2_numerator,TH2D* h2_denominator);

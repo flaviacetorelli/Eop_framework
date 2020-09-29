@@ -37,8 +37,50 @@ void ICmanager::LoadIC(TH2D* ICmap, const int &iz)
   timedependent_ICvalues_.push_back( GetICFromTH2D(ICmap,iz) );
 }
 
+void ICmanager::LoadIC(std::map<std::vector<int>, TH2D* > *hMap) // accept a pointer *
+{
+
+  for ( map<std::vector<int>, TH2D*>::iterator i=hMap->begin(); i!=hMap->end(); i++)
+  {
+    Neta_=(*i).second->GetNbinsY();
+    ietamin_=(*i).second->GetYaxis()->GetXmin();
+    ietamax_=(*i).second->GetYaxis()->GetXmax()-1;//i want the left limit of last bin, not the right one
+    Nphi_=(*i).second->GetNbinsX();
+    iphimin_=(*i).second->GetXaxis()->GetXmin();
+    iphimax_=(*i).second->GetXaxis()->GetXmax()-1;//i want the left limit of last bin, not the right one
+    //cout <<">>> For bin " << (*i).first.at(0) << endl; 
+    //cout<<">>> Neta="<<Neta_<<" in ["<<ietamin_<<","<<ietamax_<<"] and Nphi="<<Nphi_<<" in ["<<iphimin_<<","<<iphimax_<<"]"<<endl;
+    xtal_ = new crystal[Neta_*Nphi_];
+    for(int xbin=1; xbin<Nphi_+1; ++xbin)
+      for(int ybin=1; ybin<Neta_+1; ++ybin)
+      {
+        int index = fromTH2indexto1Dindex(xbin, ybin, Nphi_, Neta_);
+        xtal_[index].IC = (*i).second->GetBinContent(xbin,ybin); 
+        if (xtal_[index].IC < 0) cout << (*i).first.at(0) <<"," <<(*i).first.at(1) << "  " <<  xbin << ", " << ybin << "  " << xtal_[index].IC << endl;
+        xtal_[index].status = 1;
+      }
+    mapXtal_.insert(make_pair((*i).first, xtal_));
+  }
+
+/*   for ( std::map <std::vector<int>, crystal*>::iterator i=mapXtal_.begin(); i!=mapXtal_.end(); i++)
+     {
+        
+         for(int xbin=1; xbin<Nphi_+1; ++xbin)
+           for(int ybin=1; ybin<Neta_+1; ++ybin)
+           {
+               
+               cout << (*i).first.at(0) << ": " << (*i).first.at(1) << " = "
+               << ((*i).second[(fromTH2indexto1Dindex(xbin,  ybin, Nphi_, Neta_))]).IC << endl; 
+           }
+     }
+*/
+}
+
+
 void ICmanager::LoadIC(const std::vector<std::string> &ICcfg)
 {
+<<<<<<< HEAD
+
   timedependent_ICvalues_.clear();
 
   string inputtype   = ICcfg.front();
@@ -66,8 +108,9 @@ void ICmanager::LoadIC(const std::vector<std::string> &ICcfg)
       }
       ICdictionary.close();
     }
-    else
-    {
+    else 
+     if(inputtype=="th2dIC")
+     {
       string objkey(inputtype);
       cout<<"> Loading IC from "<<filename<<"/"<<objkey<<endl;
       TFile* inICfile = new TFile(filename.c_str(),"READ");
@@ -80,8 +123,33 @@ void ICmanager::LoadIC(const std::vector<std::string> &ICcfg)
 	  iz=+1;
       timedependent_ICvalues_.push_back( GetICFromTH2D(ICmap,iz) );
       inICfile->Close();
-    }
+    } 
+     else
+    {
+       unsigned size = stoi(ICcfg[2]);
+       cout<<"> Loading IC from "<<filename<<"/"<<objkey<<endl; 
+
+       TFile* inICfile = new TFile(filename.c_str(),"READ");
+       std::map <std::vector<int>, TH2D*> hMap; 
+
+       for (unsigned i = 0; i< size; i++)
+       {
+         TH2D *h= (TH2D*)inICfile->Get(("map_ic_"+to_string(i)).c_str());
+         
+         std::string title = h->GetTitle(); //the tile of the histo contains the info on the run number
+         std::vector<int> run_num;  
+         
+         std::string::size_type sz;   // convert string into int
+         run_num.push_back(stoi(title, &sz));   
+         run_num.push_back(stoi(title.substr(sz+1)));
+         
+         hMap.insert(make_pair(run_num, h));
+       }     
+     this->LoadIC(&hMap);
+     cout << "> Loaded all histos in the map " << endl; 
+
 }
+
 
 IC ICmanager::GetICFromtxt(const std::string &txtfilename)
 {
