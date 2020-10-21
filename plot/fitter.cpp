@@ -67,7 +67,7 @@ float GetSlope(TString file, TString hr, TString method, TString label, TString 
   gr1->SetName("gr"); 
   t->SetBranchAddress("timemin", &timemin); 
   t->SetBranchAddress("scale_Eop_"+method, &scale_Eop); 
-  t->SetBranchAddress("scaleunc_Eop_"+method, &scaleunc_Eop); 
+  t->SetBranchAddress("scale_unc_Eop_"+method, &scaleunc_Eop); 
   
 
   double mean, emean; 
@@ -86,9 +86,12 @@ float GetSlope(TString file, TString hr, TString method, TString label, TString 
   for (long i = 0; i< t->GetEntries(); i++)
   {
   t->GetEntry(i);
+  
   if (scale_Eop > 0 )
-  {gr1->SetPoint(i,double(timemin), double(scale_Eop)/norm); 
-  gr1->SetPointError(i,0,scaleunc_Eop);
+  {
+    gr1->SetPoint(i,double(timemin), double(scale_Eop)/norm); 
+    gr1->SetPointError(i,0,scaleunc_Eop);
+    //cout << "This is E/p = " << scale_Eop << endl;
   }
 
   }
@@ -115,9 +118,12 @@ float GetSlope(TString file, TString hr, TString method, TString label, TString 
   c.SaveAs("fit_"+hr+"norm_"+label+".pdf");
   c.SaveAs("fit_"+hr+"norm_"+label+".root");
 
+  system ("mkdir -p "+output);
+ 
   system("mv *.png "+output);
   system("mv *.pdf "+output);
   system("mv *fit_*.root "+output);
+
   return fittino->GetParameter(1); 
 
 }
@@ -126,14 +132,20 @@ float GetSlope(TString file, TString hr, TString method, TString label, TString 
 int main(int argc, char *argv[])
 {
 
- if (argc<4)cout<< "Missing some informations: ./fitter [fold_ntuple] [label=noCorr,EFlowCorr,EopCorr] [method=mean, median, templatefit]" << endl;
+ if (argc<5)
+ {  
+   cout<< "Missing some informations: \
+   ./fitter [fold_ntuple] [label=noCorr,EFlowCorr,EopCorr, ZeeCorr] [method=mean, median, templatefit] [output]" << endl;
+   return -1;  
+  }
   cout << ">>> Doing these samples " << endl; 
   cout << argv[1] << endl; 
 
-
+  //Reading command lines options
   string ntuple = argv[1];
   string label = argv[2];
   string method = argv[3];
+  string output_foldname = argv[4];
 
 
   gStyle->SetOptStat(111);
@@ -145,22 +157,27 @@ int main(int argc, char *argv[])
   TH1F* histo_slope_mod4 = new TH1F("histo_slope_mod4","harness slope",100,-10.e-9,2.e-9);
 
 
-  TString output="/eos/user/f/fcetorel/www/PhiSym/eflow/closuretest_2018UL_IOV1d/fit/"+method+"/"; 
-  TString output_slope = "/eos/user/f/fcetorel/www/PhiSym/eflow/closuretest_2018UL_IOV1d/histo_slope/"+method+"/";
+  TString output="/eos/user/f/fcetorel/www/PhiSym/eflow/"+output_foldname+"/fit/"+method+"/"; 
+  TString output_slope = "/eos/user/f/fcetorel/www/PhiSym/eflow/"+output_foldname+"/histo_slope/"+method+"/";
   vector<string> harness = GetHarnessRanges();
-
-    for (unsigned  i = 0; i < harness.size(); i++ )
-    {
+ 
+  //create the outputs directory
+  
+  system ("mkdir -p "+output);
+  system ("mkdir -p "+output_slope);
+ 
+  for (unsigned  i = 0; i < harness.size(); i++ ) //fit all harnesses and get their slope
+  {
     double slope = 0.;
 
 
-    TString fold="/afs/cern.ch/work/f/fcetorel/private/work2/Eop/Eop_framework/test/"+ntuple+"/";
+    TString fold="/afs/cern.ch/work/f/fcetorel/private/work2/Eop/Eop_framework/"+ntuple+"/";
     TString file=fold + harness.at(i)+"/out_file_*_scalemonitoring.root";
     slope = GetSlope(file, harness.at(i), method, label, output);  
 
     histo_slope -> Fill(slope);  
 
-   int etamin = stoi((harness.at(i)).substr(5),nullptr);
+     int etamin = stoi((harness.at(i)).substr(5),nullptr);
     //cout << "This is " << etamin << endl; 
     if (etamin == -5 || etamin == 1 || etamin == 6 || etamin== -25 ){ histo_slope_mod01 -> Fill(slope); cout << "Filling 1" << endl;}
     else if (etamin == -45 || etamin== 26 ) {histo_slope_mod2 -> Fill(slope);  cout << "Filling 2" << endl;}

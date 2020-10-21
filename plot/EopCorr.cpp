@@ -42,38 +42,43 @@ int main(int argc, char *argv[])
 
   gStyle->SetOptStat(111);
   gStyle->SetOptFit(111);
-  if (argc < 2 ) 
+  if (argc < 5 ) 
   {
-    cout << ">>>>>>>> Missing the method, try : ./EopCorr [method = mean, templatefit] " << endl;
+    cout << ">>>>>>>> Missing some arguments, try : ./EopCorr filename [tecnique = mee , Eop] [method = mean, templatefit] output" << endl;
     return 0;
   }
 
-  TString method = argv[1];
+  TString filename = argv[1];
+  TString tec = argv[2];
+  TString method = argv[3];
+  TString output = argv[4];
 
 
   cout << ">>>>>>>> Opening file : ";
-  TFile* f = new TFile("/afs/cern.ch/work/f/fcetorel/private/work2/Eop/Eop_framework/test/Rereco2018/IOV1d/harness_template_barrel/IEta_-85_85_IPhi_1_360/out_file_scalemonitoring.root");
+  TFile* f = new TFile(filename);
   cout << f->GetName() << endl;
   TTree *t= (TTree*)f->Get("ciao");
  unsigned timemin;
-  float scale_Eop, scaleunc_Eop; 
+  float scale, scale_unc; 
   double norm; 
   TGraphErrors *gr1 = new TGraphErrors(); 
 
   t->SetBranchAddress("timemin", &timemin); 
-  t->SetBranchAddress("scale_Eop_"+method, &scale_Eop); 
-  t->SetBranchAddress("scaleunc_Eop_"+method, &scaleunc_Eop); 
+  // t->SetBranchAddress("scale_"+method, &scale); 
+  // t->SetBranchAddress("scale_unc_"+method, &scale_unc); 
+  t->SetBranchAddress("scale_"+tec+"_"+method, &scale); 
+  t->SetBranchAddress("scale_unc_"+tec+"_"+method, &scale_unc); 
   
 
   double mean, emean; 
   t -> GetEntry(0);
-  norm = scale_Eop;
+  norm = scale;
   /*
   for (int i= 0; i<5; i++) // normalization to the w mean of first 5 points
   {
   t->GetEntry(i);
-  mean += scale_Eop*(1./scaleunc_Eop)*(1./scaleunc_Eop);
-  emean += (1./scaleunc_Eop)*(1./scaleunc_Eop);
+  mean += scale*(1./scale_unc)*(1./scale_unc);
+  emean += (1./scale_unc)*(1./scale_unc);
   //cout << "This is mean" << mean << endl; 
   }
   norm = mean/emean;
@@ -83,9 +88,9 @@ int main(int argc, char *argv[])
   for (long i = 0; i< t->GetEntries(); i++)
   {
   t->GetEntry(i);
-  gr1->SetPoint(i,double(timemin), double(scale_Eop)/norm); 
-  gr1->SetPointError(i,0,scaleunc_Eop);
-  cout << i << "  " << double(scale_Eop)/norm << endl;
+  gr1->SetPoint(i,double(timemin), double(scale)/norm); 
+  gr1->SetPointError(i,0,scale_unc);
+  //cout << i << "  " << double(scale)/norm << endl;
 
   }
 
@@ -95,14 +100,16 @@ int main(int argc, char *argv[])
   gr1->SetMarkerColor(kGreen+1);
   gr1->SetMarkerStyle(20); 
   gr1->Draw("ap"); 
-  gr1->SetTitle("; Time(day/month); E/p");
+  TString name_scale="E/p";
+  if (tec=="mee") name_scale = "Mee";
+  gr1->SetTitle("; Time(day/month);"+name_scale);
   gr1->GetXaxis()->SetTimeDisplay(1);
   gr1->GetXaxis()->SetTimeFormat("%d/%m%F1970-01-01 00:00:00");
 
-  c.SaveAs("Eop_Barrel_"+method+".png");
-  c.SaveAs("Eop_Barrel_"+method+".pdf");
-  c.SaveAs("Eop_Barrel_"+method+".root");
-  system("mv *.png /eos/user/f/fcetorel/www/PhiSym/eflow/closuretest_2018Rereco/");
-  system("mv *.pdf /eos/user/f/fcetorel/www/PhiSym/eflow/closuretest_2018Rereco/");
-  system("mv *Eop_Barrel*.root /eos/user/f/fcetorel/www/PhiSym/eflow/closuretest_2018Rereco/");
+  c.SaveAs(tec+"_Barrel_"+method+".png");
+  c.SaveAs(tec+"_Barrel_"+method+".pdf");
+  c.SaveAs(tec+"_Barrel_"+method+".root");
+  system("mv *.png "+output);
+  system("mv *.pdf "+output);
+  system("mv *_Barrel*.root "+output);
 }

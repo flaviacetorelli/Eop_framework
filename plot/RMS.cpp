@@ -35,7 +35,6 @@
 #include <cmath>
 #include <vector>
 using namespace std;
-bool corr = false; 
 
 
 
@@ -56,7 +55,7 @@ vector<double> doMean(TString file, TString method)
 
   t->SetBranchAddress("timemin", &timemin); 
   t->SetBranchAddress("scale_Eop_"+method, &scale_Eop); 
-  t->SetBranchAddress("scaleunc_Eop_"+method, &scaleunc_Eop); 
+  t->SetBranchAddress("scale_unc_Eop_"+method, &scaleunc_Eop); 
 
 
   double mean, emean; 
@@ -83,85 +82,93 @@ vector<double> doMean(TString file, TString method)
   return a; 
 }
 
-void doRMSPlots(TH1F** histo, TString title ,TString output)
+void doRMSPlots(int nIOV, TH1F** histo, TString title ,string output)
 {
 
- TFile* f = new TFile("/afs/cern.ch/work/f/fcetorel/private/work2/Eop/Eop_framework/test/2018/harness_template_barrel/IEta_-85_85_IPhi_1_360/out_file_scalemonitoring.root");
+  TFile* f = new TFile("/afs/cern.ch/work/f/fcetorel/private/work2/Eop/Eop_framework/barrel_eflow_Zee/IEta_-85_85_IPhi_1_360/out_file_scalemonitoring.root");
   //cout << f->GetName() << endl;
 
   TTree *t= (TTree*)f->Get("ciao");
   unsigned timemin;
   t->SetBranchAddress("timemin", &timemin); 
-   TCanvas c; 
-   c.cd(); 
-   TF1 *gs = new TF1 ("gs","gaus");
-    TGraphErrors* gr = new TGraphErrors();
-    for (unsigned ibin=0; ibin<100; ibin++)
-    {
-      histo[ibin]->Fit("gs","q");  
-      histo[ibin]->Draw();
-      c.SaveAs(title+("_histo_"+to_string(ibin)+".png").c_str());
-      c.SaveAs(title+("_histo_"+to_string(ibin)+".pdf").c_str());
-      c.SaveAs(title+("_histo_"+to_string(ibin)+".root").c_str());
-      system("mv RMS*.root " +output+"/histo");
-      system("mv *.png " +output+"/histo");
-      system("mv *.pdf " +output+"/histo");
-      t->GetEntry(ibin);
-      //gr->SetPoint(ibin,timemin,histo[ibin]->GetRMS());
-      gr->SetPoint(ibin,timemin,gs->GetParameter(2));
+  TCanvas c; 
+  c.cd(); 
+  TF1 *gs = new TF1 ("gs","gaus");
+  TGraphErrors* gr = new TGraphErrors();
+  for (unsigned ibin=0; ibin<nIOV; ibin++)
+  {
+    histo[ibin]->Fit("gs","q");  
+    histo[ibin]->Draw();
+    c.SaveAs(title+("_histo_"+to_string(ibin)+".png").c_str());
+    c.SaveAs(title+("_histo_"+to_string(ibin)+".pdf").c_str());
+    c.SaveAs(title+("_histo_"+to_string(ibin)+".root").c_str());
+    system(("mv RMS*.root " +output+"/histo").c_str());
+    system(("mv *.png " +output+"/histo").c_str());
+    system(("mv *.pdf " +output+"/histo").c_str());
+    t->GetEntry(ibin);
+    //gr->SetPoint(ibin,timemin,histo[ibin]->GetRMS());
+    gr->SetPoint(ibin,timemin,gs->GetParameter(2));
 
-      //gr->SetPointError(ibin,0,histo[ibin]->GetRMSError());
-      gr->SetPointError(ibin,0,gs->GetParError(2));
+    //gr->SetPointError(ibin,0,histo[ibin]->GetRMSError());
+    gr->SetPointError(ibin,0,gs->GetParError(2));
 
-    }
+   }
 
-   c.SetGrid(); 
-   gr->SetName("gr"); 
-   gr->SetMarkerStyle(21);
-   gr->SetMarkerColor(2);
-   gr->Draw("ap");
-   gr->GetYaxis()->SetRangeUser(0,0.01);
-   gr->SetTitle("; Time(day/month); RMS");
-   gr->GetXaxis()->SetTimeDisplay(1);
-   gr->GetXaxis()->SetTimeFormat("%d/%m%F1970-01-01 00:00:00");
-   c.Update(); 
+  c.SetGrid(); 
+  gr->SetName("gr"); 
+  gr->SetMarkerStyle(21);
+  gr->SetMarkerColor(2);
+  gr->Draw("ap");
+  gr->GetYaxis()->SetRangeUser(0,0.01);
+  gr->SetTitle("; Time(day/month); RMS");
+  gr->GetXaxis()->SetTimeDisplay(1);
+  gr->GetXaxis()->SetTimeFormat("%d/%m%F1970-01-01 00:00:00");
+  c.Update(); 
 
-   c.SaveAs(title+".png");
-   c.SaveAs(title+".pdf");
-   c.SaveAs(title+".root");
+  c.SaveAs(title+".png");
+  c.SaveAs(title+".pdf");
+  c.SaveAs(title+".root");
    
    
    
-system("mv RMS*.root "+output);
-system("mv *.png "+output);
-system("mv *.pdf "+output);
+  system(("mv RMS*.root "+output).c_str());
+  system(("mv *.png "+output).c_str());
+  system(("mv *.pdf "+output).c_str());
 
 }
 
 
 int main(int argc, char *argv[])
 {
-if (argc<4)cout<< "Missing some informations: ./RMS [fold_ntuple] [label=noCorr,EFlowCorr,EopCorr] [method=mean, median, templatefit]" << endl;
-cout << ">>> Doing these samples " << endl; 
-cout << argv[1] << endl; 
+  if (argc<5)
+  {
+    cout<< "Missing some informations: ./RMS [fold_ntuple] [label=noCorr,EFlowCorr,EopCorr] [method=mean, median, templatefit] [nIOV] [output]" << endl;
+    return 0;
+  }
 
+  cout << ">>> Doing these samples " << endl; 
+  cout << argv[1] << endl; 
 
+  gStyle->SetOptStat(111);
+  gStyle->SetOptFit(111);
+  gStyle->SetLegendBorderSize(0);
 
-//
-string fold = "/afs/cern.ch/work/f/fcetorel/private/work2/Eop/Eop_framework/test/";
-string ntuple = argv[1];
-string label = argv[2];
-string method = argv[3];
-vector<string> harness = GetHarnessRanges();
-TString output="/eos/user/f/fcetorel/www/PhiSym/eflow/closuretest_2018UL_IOV1d/RMS/"+method+"/";
-int nIOV = 109;
-gStyle->SetOptStat(111);
-gStyle->SetOptFit(111);
-TH1F* histo[nIOV];
-TH1F* histo_01[nIOV];
-TH1F* histo_2[nIOV];
-TH1F* histo_3[nIOV];
-TH1F* histo_4[nIOV];
+  string fold = "/afs/cern.ch/work/f/fcetorel/private/work2/Eop/Eop_framework/";
+  string ntuple = argv[1];
+  string label = argv[2];
+  string method = argv[3];
+  int nIOV = stoi(argv[4]);  
+  string output =  argv[5]+method+"/";
+  cout << "This is the output folder: " << output << endl;
+  //return 0;
+  system(("mkdir -p "+output+"/histo/").c_str());
+  vector<string> harness = GetHarnessRanges();
+  
+  TH1F* histo[nIOV];
+  TH1F* histo_01[nIOV];
+  TH1F* histo_2[nIOV];
+  TH1F* histo_3[nIOV];
+  TH1F* histo_4[nIOV];
 
   for (int ibin=0; ibin<nIOV; ibin++)
   {
@@ -208,11 +215,11 @@ TH1F* histo_4[nIOV];
  
   }
 
-  doRMSPlots(histo, "RMS_"+label, output); 
-  doRMSPlots(histo_01, "RMS_mod01_"+label, output); 
-  doRMSPlots(histo_2, "RMS_mod2_"+label,output); 
-  doRMSPlots(histo_3, "RMS_mod3_"+label,output); 
-  doRMSPlots(histo_4, "RMS_mod4_"+label,  output); 
+  doRMSPlots(nIOV, histo, "RMS_"+label, output); 
+  doRMSPlots(nIOV, histo_01, "RMS_mod01_"+label, output); 
+  doRMSPlots(nIOV, histo_2, "RMS_mod2_"+label,output); 
+  doRMSPlots(nIOV, histo_3, "RMS_mod3_"+label,output); 
+  doRMSPlots(nIOV, histo_4, "RMS_mod4_"+label,  output); 
   //cout << f->GetName() << endl;
 
 
