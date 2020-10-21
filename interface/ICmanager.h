@@ -67,7 +67,6 @@ class ICmanager
   //---dtor---
   ~ICmanager();
   //---utils--
-<<<<<<< HEAD
   Float_t  GetIC(const Int_t &ix, const Int_t &iy, const Int_t &iz);
   Float_t  GetIC(const Int_t &ix, const Int_t &iy, const Int_t &iz, const Int_t &iIOV);
   int      FindIOVNumber(const UInt_t &run, const UShort_t &ls);
@@ -81,6 +80,7 @@ class ICmanager
   void     LoadIC(const std::vector<std::string> &ICcfg);
   IC       GetICFromtxt(const std::string &txtfilename);
   IC       GetICFromTH2D(TH2D* ICmap, const int &iz);
+  IC       GetICFromTH2D(const std::string &filename, const std::string &objkey);
   void     InitIC(Int_t ICvalue);
   double&  operator()(const Int_t &ix, const Int_t &iy, const Int_t &iz);
   TH2D*    GetPulledIC(TH2D* h2_ICpull, const int &iz);

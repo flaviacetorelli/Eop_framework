@@ -19,9 +19,9 @@ print("-------------------------------------------------------------------------
 
 #parameters
 current_dir = os.getcwd();
-ntuple_dir ="/eos/cms/store/group/dpg_ecal/alca_ecalcalib/ecalelf/ntuples/13TeV/ALCARERECO/102X_dataRun2_Sep2018Rereco_Run2018D_SingleIOVrun320500_normalized_v1/" 
-#"/eos/cms/store/group/dpg_ecal/alca_ecalcalib/ecalelf/ntuples/13TeV/ALCARERECO/PromptReco2017_pedv1_ps_ICv1_laserv3_LC_Alpha4/"#parent folder containing all the ntuples of interest
-tag_list = ["Run2018A","Run2018B","Run2018C","Run2018D-"]#tag for the monitoring = any label in the ntuple path identifying univoquely the ntuples of interest
+ntuple_dir = "/eos/cms/store/group/dpg_ecal/alca_ecalcalib/ecalelf/ntuples/13TeV/ALCARERECO/102X_dataRun2_Sep2018Rereco_Run2018D_SingleIOVrun320500_normalized_v1/"#parent folder containing all the ntuples of interest
+tag_list =["2018A","Run2018B","Run2018C","-Run2018D-"] #tag for the monitoring = any label in the ntuple path identifying univoquely the ntuples of interest
+#tag_list =["Run2018D"]
 ignored_ntuples_label_list = ["obsolete","failed"]#ntuples containing anywhere in the path these labels will be ignored (eg corrupted files within the given tag_list)
 
 #parse arguments
@@ -87,38 +87,38 @@ for iFile in range(0,len(selected_filelist)):
     if(options.verbosity>=1):
         print(">>> Generating job for file "+selected_filename)
 
-    for harness_range in harness_ranges:
-        etamin = harness_range[0]
-        etamax = harness_range[1]
-        phimin = harness_range[2]
-        phimax = harness_range[3]
 
-        if(options.verbosity>=1):
-            print(">>> Generating job for harness IEta_%i_%i_IPhi_%i_%i"%(etamin,etamax,phimin,phimax))
+    etamin = -85
+    etamax = 85
+    phimin = 1
+    phimax = 360
 
-        jobdir="%s/IEta_%i_%i_IPhi_%i_%i/job_file_%i/"%(job_parent_folder,etamin,etamax,phimin,phimax,iFile)
-        os.system("mkdir -p "+jobdir)
+    if(options.verbosity>=1):
+         print(">>> Generating job for harness IEta_%i_%i_IPhi_%i_%i"%(etamin,etamax,phimin,phimax))
+
+    jobdir="%s/IEta_%i_%i_IPhi_%i_%i/job_file_%i/"%(job_parent_folder,etamin,etamax,phimin,phimax,iFile)
+    os.system("mkdir -p "+jobdir)
         ##### copy executable to the jobDir ######
-        os.system('cp '+str(options.exedir)+'LaserMonitoring.exe '+jobdir+'/executable.exe')
-        outdir = "%s/IEta_%i_%i_IPhi_%i_%i/"%(options.outdir,etamin,etamax,phimin,phimax) 
-        os.system("mkdir -p "+outdir)
-        tempdir = "%s/template/IEta_%i_%i_IPhi_%i_%i/file_%i/"%(options.outdir,etamin,etamax,phimin,phimax,iFile) 
-        os.system("mkdir -p "+tempdir)
+    os.system('cp '+str(options.exedir)+'LaserMonitoring.exe '+jobdir+'/executable.exe')
+    outdir = "%s/IEta_%i_%i_IPhi_%i_%i/"%(options.outdir,etamin,etamax,phimin,phimax) 
+    os.system("mkdir -p "+outdir)
+    tempdir = "%s/template/IEta_%i_%i_IPhi_%i_%i/file_%i/"%(options.outdir,etamin,etamax,phimin,phimax,iFile) 
+    os.system("mkdir -p "+tempdir)
 
-        with open(str(options.configFile)) as fi:
-            contents = fi.read()
-            replaced_contents = contents.replace("SELECTED_INPUTFILE", selected_filename).replace("EXTRACALIBTREE_INPUTFILE", extracalibtree_filename)
-            replaced_contents = replaced_contents.replace("IETAMIN",str(etamin)) 
-            replaced_contents = replaced_contents.replace("IETAMAX",str(etamax))
-            replaced_contents = replaced_contents.replace("IPHIMIN",str(phimin)) 
-            replaced_contents = replaced_contents.replace("IPHIMAX",str(phimax)) 
-            replaced_contents = replaced_contents.replace("OUTPUT_RUNDIVIDE","%s/out_file_%i_runranges.root"%(outdir,iFile))
-            #replaced_contents = replaced_contents.replace("TEMPLATE_FOLDER",tempdir)
-            replaced_contents = replaced_contents.replace("OUTPUT_SCALEMONITORING","%s/out_file_%i_scalemonitoring.root"%(outdir,iFile))
-            replaced_contents = replaced_contents.replace("OUTPUT_FOLDER",outdir)
-            cfgfilename=jobdir+"/config.cfg"
-            with open(cfgfilename, "w") as fo:
-                fo.write(replaced_contents)
+    with open(str(options.configFile)) as fi:
+        contents = fi.read()
+        replaced_contents = contents.replace("SELECTED_INPUTFILE", selected_filename).replace("EXTRACALIBTREE_INPUTFILE", extracalibtree_filename)
+        replaced_contents = replaced_contents.replace("IETAMIN",str(etamin)) 
+        replaced_contents = replaced_contents.replace("IETAMAX",str(etamax))
+        replaced_contents = replaced_contents.replace("IPHIMIN",str(phimin)) 
+        replaced_contents = replaced_contents.replace("IPHIMAX",str(phimax)) 
+        replaced_contents = replaced_contents.replace("OUTPUT_RUNDIVIDE","%s/out_file_%i_runranges.root"%(outdir,iFile))
+        #replaced_contents = replaced_contents.replace("TEMPLATE_FOLDER",tempdir)
+        replaced_contents = replaced_contents.replace("OUTPUT_SCALEMONITORING","%s/out_file_%i_scalemonitoring.root"%(outdir,iFile))
+        replaced_contents = replaced_contents.replace("OUTPUT_FOLDER",outdir)
+        cfgfilename=jobdir+"/config.cfg"
+        with open(cfgfilename, "w") as fo:
+            fo.write(replaced_contents)
 
         ##### creates script #######
         outScriptName=jobdir+"/job_file_"+str(iFile)+".sh"

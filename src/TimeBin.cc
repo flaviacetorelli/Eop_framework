@@ -283,7 +283,13 @@ bool TimeBin::Fit(TF1* fitfunc, string fitopt, int nTrial, string TemplatePlotsF
   return isgoodfit;
 
 }
+void TimeBin::Draw()
+{
+  if(!h_scale_)
+    cerr<<"[ERROR]: histogram is not booked"<<endl;
+  return h_scale_->Draw("histo");
 
+}
 double TimeBin::GetMean()
 {
   if(!h_scale_)

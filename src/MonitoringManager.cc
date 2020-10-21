@@ -53,6 +53,7 @@ float MonitoringManager::GetScaleVariableValue(const int &iEle)
   else
     if(variabletype_==kICMee)
       return GetMee()/91. *sqrt(GetICEnergy(0)*GetICEnergy(1)) /sqrt(GetEnergy(0)*GetEnergy(1));
+      //return GetMee() *sqrt(GetICEnergy(0)*GetICEnergy(1)) /sqrt(GetEnergy(0)*GetEnergy(1)); //wo normalization to 91 GeV
     else
       return this -> GetVariableValue("Eop_monitoring_scale",iEle);//method of ECALELFInterface
 
@@ -356,6 +357,7 @@ void  MonitoringManager::FillTimeBins()
 
   
   long Nentries = this->GetEntries();
+  //Nentries = 100000; //DEBUG FLAVIA
   cout<<Nentries<<" total entries\n"<<endl;
   int nev=0; 
   for(long ientry=0; ientry<Nentries; ++ientry)
@@ -369,9 +371,10 @@ void  MonitoringManager::FillTimeBins()
       if(this->isSelected(iEle))
       {
 	int iIOV = FindIOVNumber(GetRunNumber(),GetLS());
-	//printf("iIOV=%i\tE=%.1f\tICEnergy=%.1f\tp=%.1f\tE/p=%.1f\tscale=%.1f",iIOV,GetEnergy(iEle),GetICEnergy(iEle),GetP(iEle),GetICEnergy(iEle)/GetP(iEle),GetScaleVariableValue(iEle));
+        //printf("iIOV=%i\tE=%.1f\tICEnergy=%.1f\tp=%.1f\tE/p=%.1f\tscale=%.1f\n",iIOV,GetEnergy(iEle),GetICEnergy(iEle),GetP(iEle),GetICEnergy(iEle)/GetP(iEle),GetScaleVariableValue(iEle));
+	//printf("iIOV=%i\tE=%.1f\tICEnergy=%.1f\tMee=%.3f\n",iIOV,GetEnergy(iEle),GetICEnergy(iEle),GetMee()/91. *sqrt(GetICEnergy(0)*GetICEnergy(1)) /sqrt(GetEnergy(0)*GetEnergy(1)));
 	//getchar();
-	auto bin_iterator = FindBin(this->GetRunNumber(),this->GetLS(),this->GetTime());
+	auto bin_iterator = FindBin(this->GetRunNumber(),this->GetLS());
 	if(bin_iterator!=timebins.end())
           {
 	  bin_iterator->FillHisto( GetScaleVariableValue(iEle) );
@@ -570,6 +573,7 @@ void  MonitoringManager::RunComputeMean(string scale)
 void  MonitoringManager::RunComputeMedian(string scale)
 {
   cout<<">> RunComputeMedian in function"<<endl;
+  // int i = 0;
   for(std::vector<TimeBin>::iterator it_bin = timebins.begin(); it_bin<timebins.end(); ++it_bin)
   {
     //cout<<"reading bin "<<it_bin-timebins.begin()<<endl;
@@ -581,6 +585,11 @@ void  MonitoringManager::RunComputeMedian(string scale)
     }
     else
     {
+      
+     // TCanvas *ch = new TCanvas();
+     // it_bin->Draw();
+     // ch->SaveAs(("histo_"+to_string(i)+".root").c_str());
+     // i++;
       it_bin->SetVariable("scale_"+scale, it_bin->GetMedian());
       it_bin->SetVariable("scale_unc_"+scale, it_bin->GetMeanError());
     }

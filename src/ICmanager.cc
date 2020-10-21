@@ -37,49 +37,9 @@ void ICmanager::LoadIC(TH2D* ICmap, const int &iz)
   timedependent_ICvalues_.push_back( GetICFromTH2D(ICmap,iz) );
 }
 
-void ICmanager::LoadIC(std::map<std::vector<int>, TH2D* > *hMap) // accept a pointer *
-{
-
-  for ( map<std::vector<int>, TH2D*>::iterator i=hMap->begin(); i!=hMap->end(); i++)
-  {
-    Neta_=(*i).second->GetNbinsY();
-    ietamin_=(*i).second->GetYaxis()->GetXmin();
-    ietamax_=(*i).second->GetYaxis()->GetXmax()-1;//i want the left limit of last bin, not the right one
-    Nphi_=(*i).second->GetNbinsX();
-    iphimin_=(*i).second->GetXaxis()->GetXmin();
-    iphimax_=(*i).second->GetXaxis()->GetXmax()-1;//i want the left limit of last bin, not the right one
-    //cout <<">>> For bin " << (*i).first.at(0) << endl; 
-    //cout<<">>> Neta="<<Neta_<<" in ["<<ietamin_<<","<<ietamax_<<"] and Nphi="<<Nphi_<<" in ["<<iphimin_<<","<<iphimax_<<"]"<<endl;
-    xtal_ = new crystal[Neta_*Nphi_];
-    for(int xbin=1; xbin<Nphi_+1; ++xbin)
-      for(int ybin=1; ybin<Neta_+1; ++ybin)
-      {
-        int index = fromTH2indexto1Dindex(xbin, ybin, Nphi_, Neta_);
-        xtal_[index].IC = (*i).second->GetBinContent(xbin,ybin); 
-        if (xtal_[index].IC < 0) cout << (*i).first.at(0) <<"," <<(*i).first.at(1) << "  " <<  xbin << ", " << ybin << "  " << xtal_[index].IC << endl;
-        xtal_[index].status = 1;
-      }
-    mapXtal_.insert(make_pair((*i).first, xtal_));
-  }
-
-/*   for ( std::map <std::vector<int>, crystal*>::iterator i=mapXtal_.begin(); i!=mapXtal_.end(); i++)
-     {
-        
-         for(int xbin=1; xbin<Nphi_+1; ++xbin)
-           for(int ybin=1; ybin<Neta_+1; ++ybin)
-           {
-               
-               cout << (*i).first.at(0) << ": " << (*i).first.at(1) << " = "
-               << ((*i).second[(fromTH2indexto1Dindex(xbin,  ybin, Nphi_, Neta_))]).IC << endl; 
-           }
-     }
-*/
-}
-
 
 void ICmanager::LoadIC(const std::vector<std::string> &ICcfg)
 {
-<<<<<<< HEAD
 
   timedependent_ICvalues_.clear();
 
@@ -104,12 +64,40 @@ void ICmanager::LoadIC(const std::vector<std::string> &ICcfg)
 	IOV thisIOV{runmin,lsmin,runmax,lsmax};
 	cout<<"> Loading IC for IOV "<<runmin<<":"<<lsmin<<" - "<<runmax<<":"<<lsmax<<" from txt file "<<ICfilename<<endl;
 	IOVlist_.push_back( thisIOV );
-	timedependent_ICvalues_.push_back( GetICFromtxt(ICfilename) );
+
+        timedependent_ICvalues_.push_back( GetICFromtxt(ICfilename) );
       }
       ICdictionary.close();
     }
+   else
+     if(inputtype=="h2dICdictionary") //Flavia
+     {
+       ifstream ICdictionary(filename.c_str());
+       UInt_t runmin, runmax;
+       UShort_t lsmin, lsmax;
+       string ICmapname;
+       while(!ICdictionary.eof())
+       {
+         if(!(ICdictionary  >> runmin >> lsmin >> runmax >> lsmax >> ICmapname))
+           continue;
+         IOV thisIOV{runmin,lsmin,runmax,lsmax};
+         cout<<"> Loading IC for IOV "<<runmin<<":"<<lsmin<<" - "<<runmax<<":"<<lsmax<<" from txt file "<<ICmapname<<endl;
+         IOVlist_.push_back( thisIOV );
+
+         string objkey(ICmapname);
+         string mapfilename(filename);
+
+         string toReplace("mapDictionary_");
+         size_t pos = mapfilename.find(toReplace);
+         mapfilename.replace(pos, toReplace.length(), "");
+         mapfilename.replace(mapfilename.end()-3, mapfilename.end(), "root");
+         timedependent_ICvalues_.push_back( GetICFromTH2D(mapfilename, objkey) );
+       }
+      
+      ICdictionary.close();
+     }
+
     else 
-     if(inputtype=="th2dIC")
      {
       string objkey(inputtype);
       cout<<"> Loading IC from "<<filename<<"/"<<objkey<<endl;
@@ -124,30 +112,6 @@ void ICmanager::LoadIC(const std::vector<std::string> &ICcfg)
       timedependent_ICvalues_.push_back( GetICFromTH2D(ICmap,iz) );
       inICfile->Close();
     } 
-     else
-    {
-       unsigned size = stoi(ICcfg[2]);
-       cout<<"> Loading IC from "<<filename<<"/"<<objkey<<endl; 
-
-       TFile* inICfile = new TFile(filename.c_str(),"READ");
-       std::map <std::vector<int>, TH2D*> hMap; 
-
-       for (unsigned i = 0; i< size; i++)
-       {
-         TH2D *h= (TH2D*)inICfile->Get(("map_ic_"+to_string(i)).c_str());
-         
-         std::string title = h->GetTitle(); //the tile of the histo contains the info on the run number
-         std::vector<int> run_num;  
-         
-         std::string::size_type sz;   // convert string into int
-         run_num.push_back(stoi(title, &sz));   
-         run_num.push_back(stoi(title.substr(sz+1)));
-         
-         hMap.insert(make_pair(run_num, h));
-       }     
-     this->LoadIC(&hMap);
-     cout << "> Loaded all histos in the map " << endl; 
-
 }
 
 
@@ -166,6 +130,42 @@ IC ICmanager::GetICFromtxt(const std::string &txtfilename)
   return icvalues;
 }
 
+IC ICmanager::GetICFromTH2D(const std::string &icmapfilename, const std::string &objkey)
+{
+  cout<<"> Loading IC from "<<icmapfilename<<"/"<<objkey<<endl;
+  TFile* inICfile = new TFile(icmapfilename.c_str(),"READ");
+  TH2D* ICmap = (TH2D*) inICfile->Get(objkey.c_str());
+  int iz=0;
+  if(icmapfilename.find("EEm")!=std::string::npos || icmapfilename.find("EEM")!=std::string::npos)
+    iz=-1;
+  else
+    if(icmapfilename.find("EEp")!=std::string::npos || icmapfilename.find("EEP")!=std::string::npos)
+      iz=+1;
+  
+  IC icvalues;
+  bool toshift = (ICmap->GetXaxis()->GetXmin() == 1);
+  //cout << "xbin max" << ICmap->GetXaxis()->GetXmax()+1 << "ybin max" << ICmap->GetYaxis()->GetXmax()+1 << endl;
+  for(int xbin=1; xbin<ICmap->GetXaxis()->GetXmax()+1; ++xbin)
+  {
+    int ix = (int) (ICmap->GetXaxis()->GetBinCenter(xbin) - 0.5*toshift);
+    
+    for(int ybin=1; ybin<ICmap->GetYaxis()->GetXmax()-ICmap->GetYaxis()->GetXmin()+1; ++ybin) //fixed; remember that ieta has range -85,85
+    {
+    
+      int iy = (int) (ICmap->GetYaxis()->GetBinCenter(ybin) - 0.5*toshift);
+      if(iz==0)//for barrel, for historical reason, in the th2f ix(ieta) and iy(iphi) are inverted 
+      {	icvalues[iy][ix][iz] = ICmap->GetBinContent(xbin,ybin);
+        //cout << iy <<"\t"<< ix <<"\t"<< iz <<"\t"<< icvalues[iy][ix][iz] << "\t"<< endl ;
+      }
+      else
+	icvalues[ix][iy][iz] = ICmap->GetBinContent(xbin,ybin);
+    }
+  }
+  inICfile->Close();
+  return icvalues;
+}
+
+
 IC ICmanager::GetICFromTH2D(TH2D* ICmap, const int &iz)
 {
   IC icvalues;
@@ -178,6 +178,8 @@ IC ICmanager::GetICFromTH2D(TH2D* ICmap, const int &iz)
       int iy = (int) (ICmap->GetYaxis()->GetBinCenter(ybin) - 0.5*toshift);
       if(iz==0)//for barrel, for historical reason, in the th2f ix(ieta) and iy(iphi) are inverted 
 	icvalues[iy][ix][iz] = ICmap->GetBinContent(xbin,ybin);
+
+        
       else
 	icvalues[ix][iy][iz] = ICmap->GetBinContent(xbin,ybin);
     }
@@ -214,6 +216,7 @@ Float_t ICmanager::GetIC(const Int_t &ix, const Int_t &iy, const Int_t &iz, cons
   assert(iy>=iymin_.at(iz) && iy<=iymax_.at(iz));
   assert(iIOV<timedependent_ICvalues_.size());
   //#endif
+  //cout << "For iIOV:: " << iIOV << "The IC for ieta "<< ix << " , iphi << " << iy << ", iz " << iz << " is "<< timedependent_ICvalues_.at(iIOV)[ix][iy][iz] << endl;
   return timedependent_ICvalues_.at(iIOV)[ix][iy][iz];
 }
 
@@ -222,8 +225,10 @@ int ICmanager::FindIOVNumber(const UInt_t &run, const UShort_t &ls)
   if(IOVlist_.size()==0)
     return 0;
   int iIOV=0;
+  //cout<<"For the  given (run,ls)=("<<run<<","<<ls<<") in the IOV list " << endl; 
   for(int iIOV=0; iIOV<IOVlist_.size(); ++iIOV)
     if(IOVlist_.at(iIOV).Contains(run,ls))
+      //cout << "This is the IOV:: " <<  iIOV << endl;
       return iIOV;
   //cout<<"[ERROR]: can't find the given (run,ls)=("<<run<<","<<ls<<") in the IOV list --> will use the first "<<endl;
   return -1;
