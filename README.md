@@ -7,3 +7,6 @@ Code for the monitoring and calibration of the ECAL with E/p
  - this code uses the very useful CfgManager class cloned from https://github.com/simonepigazzini/CfgManager to parse options from file 
 
 For usage, setup, etc.., refer to the [git-wiki](https://github.com/fabio-mon/Eop_framework/wiki)
+
+This particular branch  provides inter calibration IC  with MinBias (Eflow) + Electrons (E/p or Zee).
+
